@@ -1,0 +1,20 @@
+const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!isPending) {
+      if (!session) {
+        toast.warning("Your session is expired!");
+        router.push("/signin");
+      } else if (session?.user?.role !== "admin") {
+        toast.warning("You're not authorized to access this route!");
+        router.push("/dashboard");
+      }
+    }
+  }, [session, isPending, router]);
+if (isPending)
+    return (
+      <div className="text-center text-gray-600 text-lg py-10">Loading...</div>
+    );
+  if (session?.user?.role !== "admin") return null;
