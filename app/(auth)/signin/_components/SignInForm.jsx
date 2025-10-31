@@ -39,7 +39,9 @@ export default function SignInForm() {
           aria-invalid={!!(touched.email && errors.email)}
           {...getFieldProps("email")}
         />
-        <FieldError>{errors.email}</FieldError>
+        {touched.email && errors.email && (
+          <FieldError>{errors.email}</FieldError>
+        )}
       </Field>
       <Field data-invalid={!!(touched.password && errors.password)}>
         <div className="flex justify-between items-center">
@@ -59,7 +61,9 @@ export default function SignInForm() {
           aria-invalid={!!(touched.password && errors.password)}
           {...getFieldProps("password")}
         />
-        <FieldError>{errors.password}</FieldError>
+        {touched.password && errors.password && (
+          <FieldError>{errors.password}</FieldError>
+        )}
       </Field>
       <Button type="submit" disabled={isPending || !isValid} className="w-full">
         {isPending ? "Signing in..." : "Sign In"}

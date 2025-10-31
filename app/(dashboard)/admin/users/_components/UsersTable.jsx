@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   banUser,
@@ -45,13 +43,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
 
 export default function UsersTable() {
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
   const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -68,17 +66,6 @@ export default function UsersTable() {
     }, 1000);
     return () => clearTimeout(timer);
   }, [searchInput]);
-  useEffect(() => {
-    if (!isPending) {
-      if (!session) {
-        toast.warning("Your session is expired!");
-        router.push("/signin");
-      } else if (session?.user?.role !== "admin") {
-        toast.warning("You're not authorized to access this route!");
-        router.push("/dashboard");
-      }
-    }
-  }, [session, isPending, router]);
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users", debouncedSearch],
     queryFn: () => getUsers(debouncedSearch),
@@ -149,10 +136,14 @@ export default function UsersTable() {
   const handleCancelDialog = () => {
     setDialog({ ...dialog, open: false, reason: "" });
   };
-  if (isPending) return <Spinner />;
-  if (session?.user?.role !== "admin") return null;
   return (
     <>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold">Users</h2>
+        <Button className="cursor-pointer" asChild>
+          <Link href="users/create">Add user</Link>
+        </Button>
+      </div>
       <div className="mb-4">
         <Input
           type="text"

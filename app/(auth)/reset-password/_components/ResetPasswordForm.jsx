@@ -57,11 +57,10 @@ export default function ResetPasswordForm() {
           disabled={isPending}
           aria-invalid={!!(touched.password && errors.password)}
           {...getFieldProps("password")}
-          className={
-            errors.password && touched.password ? "border-red-500" : ""
-          }
         />
-        <FieldError>{errors.password}</FieldError>
+        {errors.password && touched.password && (
+          <FieldError>{errors.password}</FieldError>
+        )}
       </Field>
       <Field
         data-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
@@ -74,13 +73,10 @@ export default function ResetPasswordForm() {
           disabled={isPending}
           aria-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
           {...getFieldProps("confirmPassword")}
-          className={
-            errors.confirmPassword && touched.confirmPassword
-              ? "border-red-500"
-              : ""
-          }
         />
-        <FieldError>{errors.confirmPassword}</FieldError>
+        {errors.confirmPassword && touched.confirmPassword && (
+          <FieldError>{errors.confirmPassword}</FieldError>
+        )}
       </Field>
       <Button
         type="submit"

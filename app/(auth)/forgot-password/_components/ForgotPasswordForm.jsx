@@ -51,7 +51,9 @@ export default function ForgotPasswordForm() {
           {...getFieldProps("email")}
           className={errors.email && touched.email ? "border-red-500" : ""}
         />
-        <FieldError>{errors.email} </FieldError>
+        {errors.email && touched.email && (
+          <FieldError>{errors.email}</FieldError>
+        )}
       </Field>
       <Button
         type="submit"

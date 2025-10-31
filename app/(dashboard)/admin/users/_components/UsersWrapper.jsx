@@ -1,7 +1,28 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function UsersWrapper({ children }) {
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+  useEffect(() => {
+    if (!isPending) {
+      if (!session) {
+        toast.warning("Your session is expired!");
+        router.push("/signin");
+      } else if (session?.user?.role !== "admin") {
+        toast.warning("You're not authorized to access this route!");
+        router.push("/dashboard");
+      }
+    }
+  }, [session, isPending, router]);
+  if (isPending) return <Spinner />;
+  if (session?.user?.role !== "admin") return null;
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
@@ -11,12 +32,6 @@ export default function UsersWrapper({ children }) {
             <Link href="/dashboard" className="text-blue-600 hover:underline">
               Back to Dashboard
             </Link>
-          </div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Users</h2>
-            <Button className="cursor-pointer" asChild>
-              <Link href="users/create">Add user</Link>
-            </Button>
           </div>
           {children}
         </div>

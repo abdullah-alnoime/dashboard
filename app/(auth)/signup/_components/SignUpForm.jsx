@@ -47,7 +47,7 @@ export default function SignUpForm() {
           aria-invalid={!!(touched.name && errors.name)}
           {...getFieldProps("name")}
         />
-        <FieldError>{errors.name}</FieldError>
+        {touched.name && errors.name && <FieldError>{errors.name}</FieldError>}
       </Field>
       <Field data-invalid={!!(touched.email && errors.email)}>
         <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -59,7 +59,9 @@ export default function SignUpForm() {
           aria-invalid={!!(touched.email && errors.email)}
           {...getFieldProps("email")}
         />
-        <FieldError>{errors.email}</FieldError>
+        {touched.email && errors.email && (
+          <FieldError>{errors.email}</FieldError>
+        )}
       </Field>
       <Field data-invalid={!!(touched.password && errors.password)}>
         <FieldLabel htmlFor="password">Password</FieldLabel>
@@ -71,7 +73,9 @@ export default function SignUpForm() {
           aria-invalid={!!(touched.password && errors.password)}
           {...getFieldProps("password")}
         />
-        <FieldError>{errors.password}</FieldError>
+        {touched.password && errors.password && (
+          <FieldError>{errors.password}</FieldError>
+        )}
       </Field>
       <Field
         data-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
@@ -85,7 +89,9 @@ export default function SignUpForm() {
           aria-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
           {...getFieldProps("confirmPassword")}
         />
-        <FieldError>{errors.confirmPassword}</FieldError>
+        {touched.confirmPassword && errors.confirmPassword && (
+          <FieldError>{errors.confirmPassword}</FieldError>
+        )}
       </Field>
       <Button type="submit" disabled={isPending || !isValid} className="w-full">
         {isPending ? "Creating account..." : "Sign Up"}
