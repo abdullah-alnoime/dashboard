@@ -4,7 +4,7 @@ const forgotPassword = async (email) => {
   try {
     const { data } = await authClient.requestPasswordReset({
       email,
-      redirectTo: `${process.env.NEXT_PUBLIC_CLIENT}/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_CLIENT}/reset-password`,
     });
     return data;
   } catch (error) {
@@ -28,46 +28,54 @@ const changePassword = async (payload) => {
   }
 };
 const signin = async (payload) => {
-  const { data, error } = await authClient.signIn.email({
-    ...payload,
-    callbackURL: `${process.env.NEXT_PUBLIC_CLIENT}/dashboard`,
-  });
-  if (error) {
-    let errorMessage = "Failed to sign in";
-    if (error.status === 403) {
-      if (error.code === "BANNED_USER") {
-        errorMessage = error.message || "Your account has been banned!";
-      } else if (error.code === "EMAIL_NOT_VERIFIED") {
-        errorMessage = "Please verify your email before signing in";
+  try {
+    const { data, error } = await authClient.signIn.email({
+      ...payload,
+      callbackURL: `${process.env.NEXT_PUBLIC_LOCAL_CLIENT}/dashboard`,
+    });
+    if (error) {
+      let errorMessage = "Failed to sign in";
+      if (error.status === 403) {
+        if (error.code === "BANNED_USER") {
+          errorMessage = error.message || "Your account has been banned!";
+        } else if (error.code === "EMAIL_NOT_VERIFIED") {
+          errorMessage = "Please verify your email before signing in";
+        } else {
+          errorMessage = "Wrong credentials!";
+        }
       } else {
-        errorMessage = "Wrong credentials!";
+        errorMessage = error.message || errorMessage;
       }
-    } else {
-      errorMessage = error.message || errorMessage;
+      throw new Error(errorMessage);
     }
-    throw new Error(errorMessage);
+    return data;
+  } catch (error) {
+    throw error;
   }
-  return data;
 };
 
 const signup = async (payload) => {
-  const { data, error } = await authClient.signUp.email({
-    ...payload,
-    callbackURL: `${process.env.NEXT_PUBLIC_CLIENT}/signin`,
-  });
-  if (error) {
-    let errorMessage = "Failed to sign up";
-    if (
-      error.status === 422 &&
-      error.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
-    ) {
-      errorMessage = "User already exists. Use another email.";
-    } else {
-      errorMessage = error.message || errorMessage;
+  try {
+    const { data, error } = await authClient.signUp.email({
+      ...payload,
+      callbackURL: `${process.env.NEXT_PUBLIC_LOCAL_CLIENT}/signin`,
+    });
+    if (error) {
+      let errorMessage = "Failed to sign up";
+      if (
+        error.status === 422 &&
+        error.code === "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL"
+      ) {
+        errorMessage = "User already exists. Use another email.";
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
-    throw new Error(errorMessage);
+    return data;
+  } catch (error) {
+    throw error;
   }
-  return data;
 };
 
 export { forgotPassword, resetPassword, changePassword, signin, signup };
