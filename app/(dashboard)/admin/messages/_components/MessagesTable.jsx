@@ -9,13 +9,13 @@ import Link from "next/link";
 export default function MessagesTable() {
   const queryClient = useQueryClient();
   const { data: session, isPending } = authClient.useSession();
-  const { data: messages, isLoading } = useQuery({
+  const { data: messages = [], isLoading } = useQuery({
     queryKey: ["messages"],
     queryFn: getMessages,
     enabled: !!session,
   });
   const deleteMutation = useMutation({
-    mutationFn: (messageId) => removeMessage(messageId),
+    mutationFn: removeMessage,
     onSuccess: () => {
       queryClient.invalidateQueries(["messages"]);
       alert("Message deleted successfully!");
@@ -50,7 +50,7 @@ export default function MessagesTable() {
 
       {isLoading ? (
         <p>Loading messages...</p>
-      ) : messages?.contents.length === 0 ? (
+      ) : messages.length === 0 ? (
         <p className="text-gray-500">No messages found.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -68,46 +68,44 @@ export default function MessagesTable() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {messages?.contents.map(
-                ({ _id, name, email, createdAt, message }) => (
-                  <tr key={_id}>
-                    <td className="px-6 py-4">{name}</td>
-                    <td className="px-6 py-4">
-                      <a
-                        href={`mailto:${email}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {email}
-                      </a>
-                    </td>
-                    <td className="px-6 py-4 max-w-xs truncate">{message}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(createdAt, true)}
-                    </td>
-                    <td className="px-6 py-4 space-x-3">
-                      <Link
-                        href={`messages/${_id}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        View
-                      </Link>
-                      <button
-                        onClick={() => {
-                          if (
-                            confirm(
-                              "Are you sure you want to delete this message?"
-                            )
+              {messages.map(({ _id, name, email, createdAt, message }) => (
+                <tr key={_id}>
+                  <td className="px-6 py-4">{name}</td>
+                  <td className="px-6 py-4">
+                    <a
+                      href={`mailto:${email}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      {email}
+                    </a>
+                  </td>
+                  <td className="px-6 py-4 max-w-xs truncate">{message}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(createdAt, true)}
+                  </td>
+                  <td className="px-6 py-4 space-x-3">
+                    <Link
+                      href={`messages/${_id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      View
+                    </Link>
+                    <button
+                      onClick={() => {
+                        if (
+                          confirm(
+                            "Are you sure you want to delete this message?"
                           )
-                            deleteMutation.mutate(_id);
-                        }}
-                        className="text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                )
-              )}
+                        )
+                          deleteMutation.mutate(_id);
+                      }}
+                      className="text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

@@ -8,13 +8,13 @@ import Link from "next/link";
 export default function CoursesTable() {
   const queryClient = useQueryClient();
   const { data: session, isPending } = authClient.useSession();
-  const { data: courses, isLoading } = useQuery({
+  const { data: courses = [], isLoading } = useQuery({
     queryKey: ["courses"],
     queryFn: getCourses,
     enabled: !!session,
   });
   const deleteMutation = useMutation({
-    mutationFn: (courseId) => removeCourse(courseId),
+    mutationFn: removeCourse,
     onSuccess: () => {
       queryClient.invalidateQueries(["courses"]);
       alert("Course deleted successfully!");
@@ -45,7 +45,7 @@ export default function CoursesTable() {
       </div>
       {isLoading ? (
         <p>Loading courses...</p>
-      ) : courses?.contents.length === 0 ? (
+      ) : courses.length === 0 ? (
         <p className="text-gray-500">No courses found.</p>
       ) : (
         <table className="min-w-full divide-y divide-gray-200">
@@ -62,7 +62,7 @@ export default function CoursesTable() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {courses?.contents.map(({ _id, title, by, grade, skills }) => (
+            {courses.map(({ _id, title, by, grade, skills }) => (
               <tr key={_id}>
                 <td className="px-6 py-4">{title}</td>
                 <td className="px-6 py-4">{by}</td>

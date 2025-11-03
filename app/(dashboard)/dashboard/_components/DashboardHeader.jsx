@@ -19,6 +19,7 @@ export default function DashboardHeader({ session }) {
           </span>
           <Button
             variant="destructive"
+            className="cursor-pointer"
             onClick={async () => await authClient.signOut()}
           >
             Sign Out

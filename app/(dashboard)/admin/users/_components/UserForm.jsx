@@ -97,7 +97,8 @@ export default function UserForm() {
         <Input
           id="name"
           type="text"
-          placeholder="Your name"
+          placeholder="your full name"
+          className="bg-white"
           {...formik.getFieldProps("name")}
           aria-invalid={!!(formik.touched.name && formik.errors.name)}
         />
@@ -112,7 +113,8 @@ export default function UserForm() {
         <Input
           id="email"
           type="email"
-          placeholder="Email address"
+          placeholder="email address"
+          className="bg-white"
           {...formik.getFieldProps("email")}
           aria-invalid={!!(formik.touched.email && formik.errors.email)}
         />
@@ -129,7 +131,8 @@ export default function UserForm() {
         <Input
           id="password"
           type="password"
-          placeholder="Your password"
+          placeholder="your password"
+          className="bg-white"
           {...formik.getFieldProps("password")}
           aria-invalid={!!(formik.touched.password && formik.errors.password)}
         />
@@ -149,6 +152,7 @@ export default function UserForm() {
         >
           <SelectTrigger
             id="role"
+            className="bg-white"
             aria-invalid={!!(formik.touched.role && formik.errors.role)}
           >
             <SelectValue placeholder="Choose user's role" />

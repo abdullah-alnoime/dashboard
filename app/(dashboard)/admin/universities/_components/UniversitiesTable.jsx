@@ -10,7 +10,7 @@ import { toast } from "sonner";
 export default function UniversitiesTable() {
   const { data: session, isPending } = authClient.useSession();
   const queryClient = useQueryClient();
-  const { data: universities, isLoading } = useQuery({
+  const { data: universities = [], isLoading } = useQuery({
     queryKey: ["universities"],
     queryFn: getUniversities,
     enabled: !!session,
@@ -29,7 +29,7 @@ export default function UniversitiesTable() {
     <>
       {isLoading ? (
         <p>Loading universities...</p>
-      ) : universities?.contents.length === 0 ? (
+      ) : universities.length === 0 ? (
         <p className="text-gray-500">No universities found.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -47,7 +47,7 @@ export default function UniversitiesTable() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {universities?.contents.map(({ _id, title, by, status }) => (
+              {universities.map(({ _id, title, by, status }) => (
                 <tr key={_id}>
                   <td className="px-6 py-4">{title}</td>
                   <td className="px-6 py-4">{by}</td>

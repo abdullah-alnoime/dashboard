@@ -1,44 +1,46 @@
 import apiClient from "@/lib/api-client";
 
-const getCourses = async () => {
+export const getCourses = async () => {
   try {
     const { data } = await apiClient.get("/education/course");
-    return data;
+    return data.contents;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to fetch courses");
   }
 };
-const createCourse = async (payload) => {
-  try {
-    const { data } = await apiClient.post("/education/course", payload);
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-const getCourse = async (id) => {
+
+export const getCourse = async (id) => {
   try {
     const { data } = await apiClient.get(`/education/course/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to fetch course");
   }
 };
-const updateCourse = async (id, payload) => {
+
+export const createCourse = async (payload) => {
+  try {
+    const { data } = await apiClient.post("/education/course", payload);
+    return data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to create course");
+  }
+};
+
+export const updateCourse = async (id, payload) => {
   try {
     const { data } = await apiClient.patch(`/education/course/${id}`, payload);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to update course");
   }
 };
-const removeCourse = async (id) => {
+
+export const removeCourse = async (id) => {
   try {
     const { data } = await apiClient.delete(`/education/course/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to delete course");
   }
 };
-
-export { getCourses, createCourse, getCourse, updateCourse, removeCourse };

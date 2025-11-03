@@ -1,26 +1,33 @@
 import apiClient from "@/lib/api-client";
 
-const getUniversities = async () => {
-  const { data } = await apiClient.get("/education/university");
-  return data;
-};
-const createUniversity = async (payload) => {
+export const getUniversities = async () => {
   try {
-    const { data } = await apiClient.post("/education/university", payload);
-    return data;
+    const { data } = await apiClient.get("/education/university");
+    return data.contents;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to fetch universities");
   }
 };
-const getUniversity = async (id) => {
+
+export const getUniversity = async (id) => {
   try {
     const { data } = await apiClient.get(`/education/university/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to fetch university");
   }
 };
-const updateUniversity = async (id, payload) => {
+
+export const createUniversity = async (payload) => {
+  try {
+    const { data } = await apiClient.post("/education/university", payload);
+    return data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to create university");
+  }
+};
+
+export const updateUniversity = async (id, payload) => {
   try {
     const { data } = await apiClient.patch(
       `/education/university/${id}`,
@@ -28,21 +35,15 @@ const updateUniversity = async (id, payload) => {
     );
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to update university");
   }
 };
-const removeUniversity = async (id) => {
+
+export const removeUniversity = async (id) => {
   try {
     const { data } = await apiClient.delete(`/education/university/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to delete university");
   }
-};
-export {
-  getUniversities,
-  createUniversity,
-  getUniversity,
-  updateUniversity,
-  removeUniversity,
 };

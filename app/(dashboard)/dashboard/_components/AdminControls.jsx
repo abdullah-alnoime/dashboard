@@ -1,57 +1,80 @@
+import Link from "next/link";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemMedia,
+  ItemTitle,
+} from "@/components/ui/item";
+import { Button } from "@/components/ui/button";
+import {
+  BookText,
+  ChevronRightIcon,
+  Folders,
+  GraduationCap,
+  Mails,
+  Users,
+} from "lucide-react";
+
 export default function AdminControls() {
   const links = [
     {
-      href: "/admin/users",
-      color: "blue",
-      icon: "👥",
+      id: 1,
+      address: "/admin/users",
+      icon: <Users />,
       title: "User Management",
-      desc: "Manage users and roles",
+      description: "Manage users and roles",
     },
     {
-      href: "/admin/projects",
-      color: "green",
-      icon: "🚀",
+      id: 2,
+      address: "/admin/projects",
+      icon: <Folders />,
       title: "Projects",
-      desc: "Manage projects",
+      description: "Manage projects",
     },
     {
-      href: "/admin/universities",
-      color: "purple",
-      icon: "🎓",
+      id: 3,
+      address: "/admin/universities",
+      icon: <GraduationCap />,
       title: "Universities",
-      desc: "Manage universities",
+      description: "Manage universities",
     },
     {
-      href: "/admin/courses",
-      color: "yellow",
-      icon: "📚",
+      id: 4,
+      address: "/admin/courses",
+      icon: <BookText />,
       title: "Courses",
-      desc: "Manage courses",
+      description: "Manage courses",
     },
     {
-      href: "/admin/messages",
-      color: "red",
-      icon: "✉️",
+      id: 5,
+      address: "/admin/messages",
+      icon: <Mails />,
       title: "Messages",
-      desc: "View contact messages",
+      description: "View contact messages",
     },
   ];
 
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6">
-      <h3 className="text-lg font-semibold mb-4">🔐 Admin Controls</h3>
+      <h3 className="text-lg font-semibold mb-4">Admin Controls</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {links.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            className={`p-4 border-2 border-${link.color}-200 rounded hover:border-${link.color}-400 hover:bg-${link.color}-50 transition`}
-          >
-            <h4 className={`font-semibold text-${link.color}-700 mb-2`}>
-              {link.icon} {link.title}
-            </h4>
-            <p className="text-sm text-gray-600">{link.desc}</p>
-          </a>
+        {links.map(({ id, address, icon, title, description }) => (
+          <Item key={id} variant="outline">
+            <ItemMedia variant="icon">{icon}</ItemMedia>
+            <ItemContent>
+              <ItemTitle className="text-lg font-bold">{title}</ItemTitle>
+              <ItemDescription>{description}</ItemDescription>
+            </ItemContent>
+            <ItemActions>
+              <Button variant="ghost" asChild>
+                <Link href={address}>
+                  <ChevronRightIcon />
+                </Link>
+              </Button>
+            </ItemActions>
+          </Item>
         ))}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { authClient } from "@/lib/auth-client";
 
-const getUsers = async (search = "") => {
+export const getUsers = async (search = "") => {
   const { data, error } = await authClient.admin.listUsers({
     query: {
       limit: 100,
@@ -11,37 +11,35 @@ const getUsers = async (search = "") => {
     },
   });
   if (error) throw new Error(error.message || "Failed to fetch users");
-  return data?.users || [];
+  return data.users;
 };
 
-const createUser = async (payload) => {
+export const createUser = async (payload) => {
   const { data, error } = await authClient.admin.createUser(payload);
   if (error) throw new Error(error.message || "Failed to create user");
   return data;
 };
 
-const updateUserRole = async (payload) => {
+export const updateUserRole = async (payload) => {
   const { data, error } = await authClient.admin.setRole(payload);
-  if (error) throw new Error(error.message || "Failed to update role");
+  if (error) throw new Error(error.message || "Failed to update user role");
   return data;
 };
 
-const banUser = async (payload) => {
+export const banUser = async (payload) => {
   const { data, error } = await authClient.admin.banUser(payload);
   if (error) throw new Error(error.message || "Failed to ban user");
   return data;
 };
 
-const unbanUser = async (userId) => {
+export const unbanUser = async (userId) => {
   const { data, error } = await authClient.admin.unbanUser({ userId });
   if (error) throw new Error(error.message || "Failed to unban user");
   return data;
 };
 
-const removeUser = async (userId) => {
+export const removeUser = async (userId) => {
   const { data, error } = await authClient.admin.removeUser({ userId });
   if (error) throw new Error(error.message || "Failed to remove user");
   return data;
 };
-
-export { getUsers, createUser, updateUserRole, banUser, unbanUser, removeUser };

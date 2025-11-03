@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${openSans.className} antialiased`}>
-        <Toaster position="top-center" />
+        <Toaster position="top-center" expand={true} />
         <Providers>{children}</Providers>
       </body>
     </html>

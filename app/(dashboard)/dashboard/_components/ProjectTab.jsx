@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 export default function ProjectTab({ data = [], loading, isAdmin }) {
   if (loading) return <p>Loading projects...</p>;
   if (!data?.length) return <p className="text-gray-500">No projects found.</p>;
-
   return (
     <div>
       <div className="flex justify-between items-center mb-4">

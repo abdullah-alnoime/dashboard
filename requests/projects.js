@@ -1,45 +1,46 @@
 import apiClient from "@/lib/api-client";
 
-const getProjects = async () => {
+export const getProjects = async () => {
   try {
     const { data } = await apiClient.get("/project");
-    return data;
+    return data.contents;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to fetch projects");
   }
 };
-const createProject = async (payload) => {
-  try {
-    const { data } = await apiClient.post("/project", payload);
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-const updateProject = async (id, payload) => {
-  try {
-    const { data } = await apiClient.patch(`/project/${id}`, payload);
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-const getProject = async (id) => {
+
+export const getProject = async (id) => {
   try {
     const { data } = await apiClient.get(`/project/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to fetch project");
   }
 };
 
-const removeProject = async (id) => {
+export const createProject = async (payload) => {
+  try {
+    const { data } = await apiClient.post("/project", payload);
+    return data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to create project");
+  }
+};
+
+export const updateProject = async (id, payload) => {
+  try {
+    const { data } = await apiClient.patch(`/project/${id}`, payload);
+    return data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to update project");
+  }
+};
+
+export const removeProject = async (id) => {
   try {
     const { data } = await apiClient.delete(`/project/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw new Error(error.message || "Failed to delete project");
   }
 };
-
-export { getProjects, createProject, getProject, updateProject, removeProject };

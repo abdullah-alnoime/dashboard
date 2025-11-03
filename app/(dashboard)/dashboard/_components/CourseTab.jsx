@@ -7,6 +7,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function CourseTab({ data = [], loading, isAdmin }) {
   if (loading) return <p>Loading courses...</p>;
@@ -65,14 +66,12 @@ export default function CourseTab({ data = [], loading, isAdmin }) {
             </CardContent>
 
             <CardFooter className="px-4 pt-0">
-              <a
+              <Link
                 href={course.credential}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="text-sm text-blue-600 hover:underline"
               >
                 🏆 View Credential
-              </a>
+              </Link>
             </CardFooter>
           </Card>
         ))}

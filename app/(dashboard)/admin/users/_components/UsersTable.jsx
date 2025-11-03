@@ -1,15 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  banUser,
-  getUsers,
-  removeUser,
-  unbanUser,
-  updateUserRole,
-} from "@/requests/users";
-import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -26,13 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 import {
   Empty,
   EmptyContent,
@@ -42,17 +31,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { LockKeyhole, LockKeyholeOpen, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
+import { usePermissions } from "@/hooks/usePermissions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  useBanUser,
+  useRemoveUser,
+  useUnbanUser,
+  useUpdateUserRole,
+  useUsers,
+} from "@/hooks/useUsers";
 
 export default function UsersTable() {
-  const queryClient = useQueryClient();
-  const { data: session } = authClient.useSession();
+  const { permissions, user } = usePermissions();
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-
   const [dialog, setDialog] = useState({
     type: null,
     open: false,
@@ -66,69 +68,53 @@ export default function UsersTable() {
     }, 1000);
     return () => clearTimeout(timer);
   }, [searchInput]);
-  const { data: users = [], isLoading } = useQuery({
-    queryKey: ["users", debouncedSearch],
-    queryFn: () => getUsers(debouncedSearch),
-    onError: (error) => toast.error(error.message),
-    enabled: !!session && session?.user?.role === "admin",
-  });
-  const queryInvalidate = () => queryClient.invalidateQueries(["users"]);
-  const setRoleMutation = useMutation({
-    mutationFn: updateUserRole,
-    onSuccess: () => {
-      queryInvalidate();
-      toast.success("The user's role has been changed");
-    },
-    onError: (e) => toast.error(e.message),
-  });
-  const banUserMutation = useMutation({
-    mutationFn: banUser,
-    onSuccess: () => {
-      queryInvalidate();
-      toast.success("The user has been banned!");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const unbanUserMutation = useMutation({
-    mutationFn: unbanUser,
-    onSuccess: () => {
-      queryInvalidate();
-      toast.success("The user has been unbanned");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const removeUserMutation = useMutation({
-    mutationFn: removeUser,
-    onSuccess: () => {
-      queryInvalidate();
-      toast.success("The user has been removed!");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const handleOpenDialog = (type, user, extra = {}) => {
+  const { data: users, isLoading } = useUsers(debouncedSearch);
+  const setRoleMutation = useUpdateUserRole();
+  const banUserMutation = useBanUser();
+  const unbanUserMutation = useUnbanUser();
+  const removeUserMutation = useRemoveUser();
+  const canModifyUser = (targetUser) => {
+    return permissions.canManageUsers && user?.id !== targetUser.id;
+  };
+  if (isLoading) {
+    return (
+      <div className="grid gap-6">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="flex gap-4 justify-between items-center">
+            <Skeleton className="h-[20px] w-[200px] rounded-full" />
+            <Skeleton className="h-[20px] w-[200px] rounded-full" />
+            <Skeleton className="h-[20px] w-[200px] rounded-full" />
+            <Skeleton className="h-[20px] w-[200px] rounded-full" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  console.log(users);
+  const handleOpenDialog = (type, targetUser, extra = {}) => {
     setDialog({
       type,
       open: true,
-      user,
+      user: targetUser,
       newRole: extra.newRole || null,
       reason: "",
     });
   };
   const handleConfirmDialog = () => {
-    const { type, user, newRole, reason } = dialog;
-    if (!user) return;
+    const { type, user: targetUser, newRole, reason } = dialog;
+    if (!targetUser) return;
     switch (type) {
       case "role":
-        setRoleMutation.mutate({ userId: user.id, role: newRole });
+        setRoleMutation.mutate({ userId: targetUser.id, role: newRole });
         break;
       case "ban":
-        banUserMutation.mutate({ userId: user.id, banReason: reason });
+        banUserMutation.mutate({ userId: targetUser.id, banReason: reason });
         break;
       case "unban":
-        unbanUserMutation.mutate(user.id);
+        unbanUserMutation.mutate(targetUser.id);
         break;
       case "remove":
-        removeUserMutation.mutate(user.id);
+        removeUserMutation.mutate(targetUser.id);
         break;
     }
     setDialog({ ...dialog, open: false });
@@ -211,12 +197,19 @@ export default function UsersTable() {
                 </TableCell>
                 <TableCell>
                   {user.banned ? (
-                    <Badge
-                      variant="destructive"
-                      className="bg-red-100 text-red-700"
-                    >
-                      Banned
-                    </Badge>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Badge
+                          variant="destructive"
+                          className="bg-red-100 text-red-700"
+                        >
+                          Banned
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ban reason is {user.banReason}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   ) : user.emailVerified ? (
                     <Badge
                       variant="secondary"
@@ -235,40 +228,59 @@ export default function UsersTable() {
                 </TableCell>
                 <TableCell className="flex gap-2 items-center">
                   {user.banned ? (
-                    <Button
-                      variant="outline"
-                      className="cursor-pointer text-green-600 hover:text-green-700"
-                      disabled={
-                        unbanUserMutation.isPending ||
-                        session.user.id === user.id
-                      }
-                      onClick={() => handleOpenDialog("unban", user)}
-                    >
-                      Unban
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer text-green-600 hover:text-green-700"
+                          disabled={
+                            !canModifyUser(user) || unbanUserMutation.isPending
+                          }
+                          onClick={() => handleOpenDialog("unban", user)}
+                        >
+                          <LockKeyholeOpen />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Unban {user.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   ) : (
-                    <Button
-                      variant="outline"
-                      className="cursor-pointer text-red-500 hover:text-red-600"
-                      disabled={
-                        banUserMutation.isPending || session.user.id === user.id
-                      }
-                      onClick={() => handleOpenDialog("ban", user)}
-                    >
-                      Ban
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="cursor-pointer text-red-500 hover:text-red-600"
+                          disabled={
+                            !canModifyUser(user) || banUserMutation.isPending
+                          }
+                          onClick={() => handleOpenDialog("ban", user)}
+                        >
+                          <LockKeyhole />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ban {user.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
                   )}
-                  <Button
-                    variant="outline"
-                    className="cursor-pointer"
-                    disabled={
-                      removeUserMutation.isPending ||
-                      session.user.id === user.id
-                    }
-                    onClick={() => handleOpenDialog("remove", user)}
-                  >
-                    <Trash2 className="text-red-500" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="cursor-pointer"
+                        disabled={
+                          !canModifyUser(user) || removeUserMutation.isPending
+                        }
+                        onClick={() => handleOpenDialog("remove", user)}
+                      >
+                        <Trash2 className="text-red-500" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Remove {user.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}

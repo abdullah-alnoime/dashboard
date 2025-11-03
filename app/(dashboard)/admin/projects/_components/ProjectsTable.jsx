@@ -8,13 +8,13 @@ import { getProjects, removeProject } from "@/requests/projects";
 export default function ProjectsTable() {
   const queryClient = useQueryClient();
   const { data: session, isPending } = authClient.useSession();
-  const { data: projects, isLoading } = useQuery({
+  const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects"],
     queryFn: getProjects,
     enabled: !!session,
   });
   const deleteMutation = useMutation({
-    mutationFn: (projectId) => removeProject(projectId),
+    mutationFn: removeProject,
     onSuccess: () => {
       queryClient.invalidateQueries(["projects"]);
       alert("Project deleted successfully!");
@@ -24,8 +24,7 @@ export default function ProjectsTable() {
     },
   });
   if (isPending) return <div>Checking session...</div>;
-  if (session?.user?.role !== "admin")
-    return <div>You're not authorized to access this route!</div>;
+  if (session?.user?.role !== "admin") return null;
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="max-w-7xl mx-auto py-4 flex justify-between items-center">
@@ -46,7 +45,7 @@ export default function ProjectsTable() {
 
       {isLoading ? (
         <p>Loading projects...</p>
-      ) : projects?.contents.length === 0 ? (
+      ) : projects.length === 0 ? (
         <p className="text-gray-500">No projects found.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -64,7 +63,7 @@ export default function ProjectsTable() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {projects?.contents.map(({ _id, title, summary, tools }) => (
+              {projects.map(({ _id, title, summary, tools }) => (
                 <tr key={_id}>
                   <td className="px-6 py-4">{title}</td>
                   <td className="px-6 py-4 max-w-xs truncate">{summary}</td>
