@@ -43,3 +43,19 @@ export const removeUser = async (userId) => {
   if (error) throw new Error(error.message || "Failed to remove user");
   return data;
 };
+
+export const changePassword = async (payload) => {
+  const { data, error } = await authClient.changePassword(payload);
+  if (error) {
+    let errorMessage = "Failed to change password";
+    if (error.status === 400) {
+      if (error.code === "INVALID_PASSWORD") {
+        errorMessage = "Please add your correct current password";
+      }
+    } else {
+      errorMessage = error.message || errorMessage;
+    }
+    throw new Error(errorMessage);
+  }
+  return data;
+};

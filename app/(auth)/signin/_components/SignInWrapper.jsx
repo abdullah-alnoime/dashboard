@@ -20,9 +20,9 @@ export default function SignInWrapper({ children }) {
   if (session) return null;
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full space-y-4 p-8 bg-white rounded-lg shadow">
+      <div className="w-full max-w-lg space-y-4 p-8 bg-white rounded-lg shadow">
         <p className="pt-4">
-          <Link href="/" className="text-gray-600 hover:underline">
+          <Link href="/" className="text-blue-500 hover:underline">
             Back to home
           </Link>
         </p>

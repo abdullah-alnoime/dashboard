@@ -1,43 +1,21 @@
 "use client";
 
 import { useFormik } from "formik";
-import { useMutation } from "@tanstack/react-query";
-import { forgotPassword } from "@/requests/auth";
 import { schema } from "./validation/schema";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldLabel,
-  FieldError,
-  FieldSet,
-  FieldGroup,
-} from "@/components/ui/field";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
+import { useForgotPassword } from "@/hooks/useAuth";
 
 export default function ForgotPasswordForm() {
-  const router = useRouter();
-
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (email) => forgotPassword(email),
-    onSuccess: () => {
-      toast.success("Password reset link sent! Check your email.");
-      router.push("/signin");
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to send reset link");
-    },
-  });
-
+  const { mutateAsync, isPending } = useForgotPassword();
   const { handleSubmit, getFieldProps, errors, touched, isValid } = useFormik({
     initialValues: { email: "" },
     validationSchema: schema,
-    onSubmit: (values) => {
-      mutateAsync(values.email);
+    onSubmit: async (values) => {
+      await mutateAsync(values.email);
     },
   });
-
   return (
     <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
       <Field data-invalid={!!(touched.password && errors.password)}>
@@ -58,7 +36,7 @@ export default function ForgotPasswordForm() {
       <Button
         type="submit"
         disabled={isPending || !isValid}
-        className="w-full mt-4"
+        className="w-full max-w-md cursor-pointer"
       >
         {isPending ? "Sending..." : "Send Reset Link"}
       </Button>

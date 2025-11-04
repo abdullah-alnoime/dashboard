@@ -78,19 +78,40 @@ export default function UsersTable() {
   };
   if (isLoading) {
     return (
-      <div className="grid gap-6">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="flex gap-4 justify-between items-center">
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
+      <>
+        <div className="flex justify-between items-center mb-6">
+          <Skeleton className="h-7 w-24 rounded-md" />
+          <Skeleton className="h-9 w-24 rounded-md bg-neutral-200" />
+        </div>
+        <div className="mb-4">
+          <Skeleton className="h-10 rounded-md" />
+        </div>
+        <div className="grid gap-4">
+          <div className="flex justify-between items-center rounded-lg">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                className="h-[30px] w-[120px] bg-neutral-200 rounded-full"
+              />
+            ))}
           </div>
-        ))}
-      </div>
+          {Array.from({ length: 3 }).map((_, rowIndex) => (
+            <div
+              key={rowIndex}
+              className="flex justify-between items-center gap-4 border-b py-2"
+            >
+              {Array.from({ length: 5 }).map((_, cellIndex) => (
+                <Skeleton
+                  key={cellIndex}
+                  className="h-[25px] w-[120px] rounded-full"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </>
     );
   }
-  console.log(users);
   const handleOpenDialog = (type, targetUser, extra = {}) => {
     setDialog({
       type,
@@ -138,22 +159,7 @@ export default function UsersTable() {
           onChange={(e) => setSearchInput(e.target.value)}
         />
       </div>
-      {isLoading ? (
-        <div className="grid gap-6">
-          <div className="flex gap-4 justify-between items-center">
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-          </div>
-          <div className="flex gap-4 justify-between items-center">
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-            <Skeleton className="h-[20px] w-[200px] rounded-full" />
-          </div>
-        </div>
-      ) : users.length === 0 ? (
+      {users.length === 0 ? (
         <Empty className="from-muted/50 to-background h-full bg-gradient-to-b from-30%">
           <EmptyHeader>
             <EmptyTitle>No found users</EmptyTitle>

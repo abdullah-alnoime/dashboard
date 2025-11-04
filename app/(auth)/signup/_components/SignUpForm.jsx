@@ -1,40 +1,35 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
 import { useFormik } from "formik";
-import { signup } from "@/requests/auth";
 import { schema } from "./validation/schema";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useSignUp } from "@/hooks/useAuth";
 
 export default function SignUpForm() {
-  const router = useRouter();
-
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: signup,
-    onSuccess: () => {
-      toast.success(
-        "Account created! Please check your email to verify your account before signing in."
-      );
-      router.push("/signin");
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to sign up");
-    },
+  const [showPassword, setShowPassword] = useState({
+    password: false,
+    confirm: false,
   });
-
+  const { mutateAsync, isPending } = useSignUp();
   const { handleSubmit, getFieldProps, errors, touched, isValid } = useFormik({
-    initialValues: { name: "", email: "", password: "", confirmPassword: "" },
+    initialValues: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
     validationSchema: schema,
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       const { confirmPassword, ...data } = values;
-      mutateAsync(data);
+      await mutateAsync(data);
     },
   });
-
+  const togglePassword = (key) =>
+    setShowPassword((prev) => ({ ...prev, [key]: !prev[key] }));
   return (
     <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
       <Field data-invalid={!!(touched.name && errors.name)}>
@@ -65,14 +60,27 @@ export default function SignUpForm() {
       </Field>
       <Field data-invalid={!!(touched.password && errors.password)}>
         <FieldLabel htmlFor="password">Password</FieldLabel>
-        <Input
-          id="password"
-          type="password"
-          placeholder="password"
-          disabled={isPending}
-          aria-invalid={!!(touched.password && errors.password)}
-          {...getFieldProps("password")}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword.password ? "text" : "password"}
+            placeholder="password"
+            disabled={isPending}
+            aria-invalid={!!(touched.password && errors.password)}
+            {...getFieldProps("password")}
+          />
+          <button
+            type="button"
+            onClick={() => togglePassword("password")}
+            className="absolute right-0 inset-y-0 px-3 flex items-center text-gray-500 rounded-md cursor-pointer"
+          >
+            {showPassword.password ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        </div>
         {touched.password && errors.password && (
           <FieldError>{errors.password}</FieldError>
         )}
@@ -81,19 +89,36 @@ export default function SignUpForm() {
         data-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
       >
         <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
-        <Input
-          id="confirmPassword"
-          type="password"
-          placeholder="confirm password"
-          disabled={isPending}
-          aria-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
-          {...getFieldProps("confirmPassword")}
-        />
+        <div className="relative">
+          <Input
+            id="confirmPassword"
+            type={showPassword.confirm ? "text" : "password"}
+            placeholder="confirm password"
+            disabled={isPending}
+            aria-invalid={!!(touched.confirmPassword && errors.confirmPassword)}
+            {...getFieldProps("confirmPassword")}
+          />
+          <button
+            type="button"
+            onClick={() => togglePassword("confirm")}
+            className="absolute right-0 inset-y-0 px-3 flex items-center text-gray-500 rounded-md cursor-pointer"
+          >
+            {showPassword.confirm ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        </div>
         {touched.confirmPassword && errors.confirmPassword && (
           <FieldError>{errors.confirmPassword}</FieldError>
         )}
       </Field>
-      <Button type="submit" disabled={isPending || !isValid} className="w-full">
+      <Button
+        type="submit"
+        disabled={isPending || !isValid}
+        className="w-full max-w-md cursor-pointer"
+      >
         {isPending ? "Creating account..." : "Sign Up"}
       </Button>
     </form>

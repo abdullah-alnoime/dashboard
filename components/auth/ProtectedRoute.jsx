@@ -6,16 +6,16 @@ import { useEffect } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
-export function ProtectedRoute({ children, requireAuth = true }) {
+export function ProtectedRoute({ children }) {
   const { session, isPending } = usePermissions();
   const router = useRouter();
   useEffect(() => {
-    if (!isPending && requireAuth && !session) {
-      toast.warning("Please sign in to access this page");
+    if (!isPending && !session) {
+      toast.warning("Your session is expired, Sign in again");
       router.push("/signin");
     }
-  }, [session, isPending, requireAuth, router]);
+  }, [session, isPending, router]);
   if (isPending) return <Spinner />;
-  if (requireAuth && !session) return null;
+  if (!session) return null;
   return <>{children}</>;
 }

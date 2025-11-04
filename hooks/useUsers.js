@@ -7,8 +7,10 @@ import {
   banUser,
   unbanUser,
   removeUser,
+  changePassword,
 } from "@/requests/users";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function useUsers(searchQuery = "") {
   const { permissions } = usePermissions();
@@ -21,6 +23,7 @@ export function useUsers(searchQuery = "") {
 }
 
 export function useCreateUser() {
+  const router = useRouter();
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
   return useMutation({
@@ -28,14 +31,14 @@ export function useCreateUser() {
     onSuccess: () => {
       queryClient.invalidateQueries(["users"]);
       toast.success("User created successfully");
+      router.back();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to create user");
     },
     onMutate: () => {
       if (!permissions.canCreateUser) {
-        toast.error("You don't have permission to create users");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to create users");
       }
     },
   });
@@ -55,8 +58,7 @@ export function useUpdateUserRole() {
     },
     onMutate: () => {
       if (!permissions.canSetUserRole) {
-        toast.error("You don't have permission to update user roles");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to update user roles");
       }
     },
   });
@@ -76,8 +78,7 @@ export function useBanUser() {
     },
     onMutate: () => {
       if (!permissions.canBanUser) {
-        toast.error("You don't have permission to ban users");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to ban users");
       }
     },
   });
@@ -97,8 +98,7 @@ export function useUnbanUser() {
     },
     onMutate: () => {
       if (!permissions.canBanUser) {
-        toast.error("You don't have permission to unban users");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to unban users");
       }
     },
   });
@@ -118,8 +118,26 @@ export function useRemoveUser() {
     },
     onMutate: () => {
       if (!permissions.canDeleteUser) {
-        toast.error("You don't have permission to remove users");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to remove users");
+      }
+    },
+  });
+}
+export function useChangePassword() {
+  const { permissions } = usePermissions();
+  return useMutation({
+    mutationFn: changePassword,
+    onSuccess: () => {
+      toast.success("Password changed successfully", {
+        description: "All other sessions have been logged out for security.",
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to changed password");
+    },
+    onMutate: () => {
+      if (!permissions.canChangePassword) {
+        throw new Error("You don't have permission to change password");
       }
     },
   });

@@ -10,18 +10,12 @@ export const forgotPassword = async (email) => {
   return data;
 };
 
-export const resetPassword = async (newPassword, token) => {
+export const resetPassword = async ({ password, token }) => {
   const { data, error } = await authClient.resetPassword({
-    newPassword,
+    newPassword: password,
     token,
   });
   if (error) throw new Error(error.message || "Failed to reset password");
-  return data;
-};
-
-export const changePassword = async (payload) => {
-  const { data, error } = await authClient.changePassword(payload);
-  if (error) throw new Error(error.message || "Failed to change password");
   return data;
 };
 

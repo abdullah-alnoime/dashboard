@@ -1,16 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useFormik } from "formik";
 import Link from "next/link";
-import * as Yup from "yup";
-import { createUser } from "@/requests/users";
-import { toast } from "sonner";
-import { authClient } from "@/lib/auth-client";
-import { useEffect } from "react";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -19,51 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { useCreateUser } from "@/hooks/useUsers";
+import { schema } from "./validation/schema";
 
 export default function UserForm() {
-  const router = useRouter();
-  const { data: session, isPending } = authClient.useSession();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    if (!isPending) {
-      if (!session) {
-        toast.warning("Your session is expired!");
-        router.push("/signin");
-      } else if (session?.user?.role !== "admin") {
-        toast.warning("You're not authorized to access this route!");
-        router.push("/dashboard");
-      }
-    }
-  }, [session, isPending, router]);
-  const createUserMutation = useMutation({
-    mutationFn: createUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["users"]);
-      toast.success("The user has been created");
-      router.push(".");
-    },
-    onError: (error) => toast.error(error.message),
-  });
-  const validationSchema = Yup.object({
-    name: Yup.string()
-      .min(2, "Name must be at least 2 characters")
-      .required("Name is required"),
-    email: Yup.string()
-      .email("Invalid email address")
-      .required("Email is required"),
-    password: Yup.string()
-      .min(8, "Password must be at least 8 characters")
-      .matches(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-      )
-      .required("Password is required"),
-    role: Yup.string()
-      .oneOf(["user", "admin"], "Invalid role")
-      .required("Role is required"),
-  });
+  const createUserMutation = useCreateUser();
   const formik = useFormik({
     initialValues: {
       name: "",
@@ -71,23 +24,11 @@ export default function UserForm() {
       password: "",
       role: "user",
     },
-    validationSchema,
+    validationSchema: schema,
     onSubmit: (values) => {
-      createUserMutation.mutate(values);
+      createUserMutation.mutateAsync(values);
     },
   });
-  if (isPending)
-    return (
-      <div className="grid gap-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-3">
-            <Skeleton className="h-[25px] w-[200px] rounded-full" />
-            <Skeleton className="h-[30px] w-full rounded-full" />
-          </div>
-        ))}
-      </div>
-    );
-  if (session?.user?.role !== "admin") return null;
   return (
     <form onSubmit={formik.handleSubmit} noValidate className="space-y-4">
       <Field data-invalid={!!(formik.touched.name && formik.errors.name)}>

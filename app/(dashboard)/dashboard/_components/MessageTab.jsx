@@ -26,9 +26,21 @@ export default function MessageTab({ data = [], loading }) {
         {data.map(({ _id, name, email, message, createdAt }) => (
           <Card key={_id}>
             <CardHeader>
-              <CardTitle>Mr/Mrs, {name}</CardTitle>
+              <CardTitle className="text-xl">
+                Hi, Mr/Mrs. {name}
+                <span className="text-sm text-gray-500">
+                  (
+                  <a
+                    href={`mailto:${email}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    {email}
+                  </a>
+                  )
+                </span>
+              </CardTitle>
               <CardDescription>
-                Sent via email {email} at {formatDate(createdAt, true)}
+                The message has been sent on {formatDate(createdAt, true)}
               </CardDescription>
             </CardHeader>
             <CardContent>{message}</CardContent>

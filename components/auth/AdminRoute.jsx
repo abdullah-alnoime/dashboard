@@ -15,7 +15,7 @@ export function AdminRoute({ children }) {
         toast.warning("Please sign in to access this page");
         router.push("/signin");
       } else if (!permissions.isAdmin) {
-        toast.error("You don't have permission to access this page");
+        toast.warning("You don't have permission to access this page");
         router.push("/dashboard");
       }
     }

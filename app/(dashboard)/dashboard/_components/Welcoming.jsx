@@ -12,10 +12,6 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
   const {
     user: { name, email, role, emailVerified },
   } = session;
-  const totalProjects = 12;
-  const totalCourses = 12;
-  const totalUniversities = 12;
-  const totalMessages = 12;
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6">
       <h2 className="text-xl font-semibold mb-4 capitalize">
@@ -55,7 +51,7 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
       {isAdmin && (
         <div>
           <h2 className="text-xl font-semibold my-4">Statistics</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Item variant="outline">
               <ItemContent className="items-center">
                 <ItemTitle className="text-6xl text-center font-bold">
@@ -65,8 +61,8 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
                     data.projects.length
                   )}
                 </ItemTitle>
-                <ItemDescription>
-                  Number of projects you currently have
+                <ItemDescription className="text-center">
+                  Total number of projects you currently have
                 </ItemDescription>
               </ItemContent>
             </Item>
@@ -79,8 +75,8 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
                     data.universities.length
                   )}
                 </ItemTitle>
-                <ItemDescription>
-                  Number of universities you currently have
+                <ItemDescription className="text-center">
+                  Total number of university degrees you currently have
                 </ItemDescription>
               </ItemContent>
             </Item>
@@ -93,8 +89,8 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
                     data.courses.length
                   )}
                 </ItemTitle>
-                <ItemDescription>
-                  Number of courses & certifications you currently have
+                <ItemDescription className="text-center">
+                  Total number of courses you have currently taken
                 </ItemDescription>
               </ItemContent>
             </Item>
@@ -107,8 +103,8 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
                     data.messages.length
                   )}
                 </ItemTitle>
-                <ItemDescription>
-                  Number of messages you currently have
+                <ItemDescription className="text-center">
+                  Total number of messages you have received so far
                 </ItemDescription>
               </ItemContent>
             </Item>

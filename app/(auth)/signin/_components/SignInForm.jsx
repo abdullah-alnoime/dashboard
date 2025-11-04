@@ -1,32 +1,23 @@
 "use client";
 
 import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { schema } from "./validation/schema";
-import { signin } from "@/requests/auth";
 import { useFormik } from "formik";
-import { toast } from "sonner";
 import Link from "next/link";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useSignIn } from "@/hooks/useAuth";
 
 export default function SignInForm() {
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (values) => signin(values),
-    onSuccess: () => {
-      toast.success("You gain access to dashboard!");
-    },
-    onError: (err) => {
-      toast.error(err.message || "Failed to sign in");
-    },
-  });
-
+  const [showPassword, setShowPassword] = useState(false);
+  const { mutateAsync, isPending } = useSignIn();
   const { handleSubmit, getFieldProps, errors, touched, isValid } = useFormik({
     initialValues: { email: "", password: "" },
     validationSchema: schema,
-    onSubmit: (values) => mutateAsync(values),
+    onSubmit: async (values) => await mutateAsync(values),
   });
-
   return (
     <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
       <Field data-invalid={!!(touched.email && errors.email)}>
@@ -53,19 +44,36 @@ export default function SignInForm() {
             Forgot password?
           </Link>
         </div>
-        <Input
-          id="password"
-          type="password"
-          placeholder="password"
-          disabled={isPending}
-          aria-invalid={!!(touched.password && errors.password)}
-          {...getFieldProps("password")}
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="password"
+            disabled={isPending}
+            aria-invalid={!!(touched.password && errors.password)}
+            {...getFieldProps("password")}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-0 inset-y-0 px-3 flex items-center text-gray-500 rounded-md cursor-pointer"
+          >
+            {showPassword ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        </div>
         {touched.password && errors.password && (
           <FieldError>{errors.password}</FieldError>
         )}
       </Field>
-      <Button type="submit" disabled={isPending || !isValid} className="w-full">
+      <Button
+        type="submit"
+        disabled={isPending || !isValid}
+        className="w-full max-w-md cursor-pointer"
+      >
         {isPending ? "Signing in..." : "Sign In"}
       </Button>
     </form>
