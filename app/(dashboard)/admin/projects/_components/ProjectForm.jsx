@@ -1,41 +1,29 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as Yup from "yup";
-import { createProject, getProject, updateProject } from "@/requests/projects";
 import Link from "next/link";
 import { useState } from "react";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useProject, useUpsertProject } from "@/hooks/useProjects";
+import { schema } from "./validation/schema";
 
 export default function ProjectForm({ mode, projectId }) {
   const [toolInput, setToolInput] = useState("");
-  const router = useRouter();
-  const queryClient = useQueryClient();
-
-  const { data: project, isLoading } = useQuery({
-    queryKey: ["projects", projectId],
-    queryFn: () => getProject(projectId),
-    enabled: mode === "edit",
-  });
-
-  const mutation = useMutation({
-    mutationFn: (values) => {
-      if (mode === "edit") {
-        updateProject(projectId, values);
-      } else {
-        createProject(values);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["projects"]);
-      alert(`Project ${mode === "edit" ? "updated" : "created"} successfully!`);
-      router.back();
-    },
-    onError: (err) => {
-      alert(err.response?.data?.msg || "Something went wrong");
-    },
-  });
+  const { data: project = [], isLoading } = useProject(projectId);
+  const mutation = useUpsertProject(mode);
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: project?.content || {
@@ -62,45 +50,16 @@ export default function ProjectForm({ mode, projectId }) {
         },
       },
     },
-    validationSchema: Yup.object({
-      preview: Yup.string().required("Preview is required"),
-      title: Yup.string().required("Title is required"),
-      summary: Yup.string().required("Summary is required"),
-      tools: Yup.array()
-        .of(Yup.string())
-        .min(1, "At least one tool is required")
-        .required("Tools are required"),
-      demo: Yup.string()
-        .url("Invalid demo URL")
-        .required("Demo URL is required"),
-      code: Yup.string()
-        .url("Invalid code URL")
-        .required("Code URL is required"),
-      content: Yup.object({
-        description: Yup.string().required("Description is required"),
-        responsive: Yup.object({
-          mobile: Yup.string().required("Mobile preview is required"),
-          desktop: Yup.string().required("Desktop preview is required"),
-        }),
-      }),
-      translations: Yup.object({
-        ar: Yup.object({
-          title: Yup.string().required("Arabic title is required"),
-          summary: Yup.string().required("Arabic summary is required"),
-          content: Yup.object({
-            description: Yup.string().required(
-              "Arabic description is required"
-            ),
-          }),
-        }),
-      }),
-    }),
+    // validationSchema: schema,
     onSubmit: (values) => {
-      const { _id, updatedAt, createdAt, ...data } = values;
-      mutation.mutate(data);
+      if (mode === "edit") {
+        const { _id, updatedAt, createdAt, __v, ...data } = values;
+        mutation.mutate({ id: projectId, data });
+      } else {
+        mutation.mutate(values);
+      }
     },
   });
-
   const handleToolsKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -111,7 +70,6 @@ export default function ProjectForm({ mode, projectId }) {
       }
     }
   };
-
   const removeTool = (indexToRemove) => {
     const newTools = formik.values.tools.filter(
       (_, index) => index !== indexToRemove
@@ -119,282 +77,328 @@ export default function ProjectForm({ mode, projectId }) {
     formik.setFieldValue("tools", newTools);
   };
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
+    return <div>loading fields..</div>;
   }
   return (
     <form onSubmit={formik.handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Preview URL <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="preview"
-            value={formik.values.preview}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.preview && formik.touched.preview && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.preview}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formik.values.title}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.title && formik.touched.title && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Summary <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="summary"
-            value={formik.values.summary}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-            rows="3"
-          />
-          {formik.errors.summary && formik.touched.summary && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.summary}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Tools <span className="text-red-500">*</span>
-          </label>
-          <div className="w-full px-3 py-2 border rounded focus-within:ring-2 focus-within:ring-blue-500 min-h-[42px] flex flex-wrap gap-2 items-center">
-            {formik.values.tools.map((tool, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-              >
-                {tool}
-                <button
-                  type="button"
-                  onClick={() => removeTool(index)}
-                  className="hover:bg-blue-200 rounded-full w-4 h-4 flex items-center justify-center"
-                  aria-label={`Remove ${tool}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <input
+      <FieldSet>
+        <FieldGroup>
+          <Field
+            data-invalid={!!(formik.errors.preview && formik.touched.preview)}
+          >
+            <FieldLabel htmlFor="preview">
+              Preview URL <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="url"
+              id="preview"
+              placeholder="type preview URL here"
+              className="bg-white"
+              aria-invalid={!!(formik.errors.preview && formik.touched.preview)}
+              {...formik.getFieldProps("preview")}
+            />
+            {formik.errors.preview && formik.touched.preview && (
+              <FieldError>{formik.errors.preview}</FieldError>
+            )}
+          </Field>
+          <Field data-invalid={!!(formik.errors.title && formik.touched.title)}>
+            <FieldLabel htmlFor="title">
+              Title <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
               type="text"
-              value={toolInput}
-              onChange={(e) => setToolInput(e.target.value)}
-              onKeyDown={handleToolsKeyDown}
-              placeholder={
-                formik.values.tools.length === 0
-                  ? "Type a tool and press Enter or Space"
-                  : ""
+              id="title"
+              placeholder="type title here"
+              className="bg-white"
+              aria-invalid={!!(formik.errors.title && formik.touched.title)}
+              {...formik.getFieldProps("title")}
+            />
+            {formik.errors.title && formik.touched.title && (
+              <FieldError>{formik.errors.title}</FieldError>
+            )}
+          </Field>
+          <Field
+            data-invalid={!!(formik.errors.summary && formik.touched.summary)}
+          >
+            <FieldLabel htmlFor="summary">
+              Summary <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Textarea
+              id="summary"
+              placeholder="type summary here"
+              className="min-h-24 bg-white resize-none"
+              aria-invalid={!!(formik.errors.summary && formik.touched.summary)}
+              {...formik.getFieldProps("summary")}
+            />
+            {formik.errors.summary && formik.touched.summary && (
+              <FieldError>{formik.errors.summary}</FieldError>
+            )}
+          </Field>
+          <Field data-invalid={!!(formik.errors.tools && formik.touched.tools)}>
+            <FieldLabel htmlFor="tools">
+              Tools <span className="text-red-500">*</span>
+            </FieldLabel>
+            <div className="flex gap-1.5 flex-wrap">
+              {formik.values.tools.map((tool, index) => (
+                <Badge key={tool} className="ps-3 pe-1 py-1 gap-1">
+                  <span>{tool}</span>
+                  <Button
+                    type="button"
+                    onClick={() => removeTool(index)}
+                    className="w-6 h-6 rounded-full hover:text-neutral-900 hover:bg-neutral-100"
+                    aria-label={`Remove ${tool}`}
+                  >
+                    <X className="w-1 h-1" />
+                  </Button>
+                </Badge>
+              ))}
+              <Input
+                type="text"
+                id="tools"
+                name="tools"
+                value={toolInput}
+                className="bg-white flex-1 min-w-[200px]"
+                onChange={(e) => setToolInput(e.target.value)}
+                onBlur={formik.handleBlur}
+                onKeyDown={handleToolsKeyDown}
+                aria-invalid={!!(formik.errors.tools && formik.touched.tools)}
+                placeholder="type a tool and press Enter"
+              />
+            </div>
+            {formik.touched.tools && formik.errors.tools && (
+              <FieldError>{formik.errors.tools}</FieldError>
+            )}
+          </Field>
+          <Field data-invalid={!!(formik.errors.demo && formik.touched.demo)}>
+            <FieldLabel htmlFor="demo">
+              Demo URL <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="url"
+              id="demo"
+              placeholder="type demo URL here"
+              className="bg-white"
+              aria-invalid={!!(formik.errors.demo && formik.touched.demo)}
+              {...formik.getFieldProps("demo")}
+            />
+            {formik.touched.demo && formik.errors.demo && (
+              <FieldError>{formik.errors.demo}</FieldError>
+            )}
+          </Field>
+          <Field data-invalid={!!(formik.errors.code && formik.touched.code)}>
+            <FieldLabel htmlFor="code">
+              Code URL <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="url"
+              id="code"
+              placeholder="type code URL here"
+              className="bg-white"
+              aria-invalid={!!(formik.errors.code && formik.touched.code)}
+              {...formik.getFieldProps("code")}
+            />
+            {formik.touched.code && formik.errors.code && (
+              <FieldError>{formik.errors.code}</FieldError>
+            )}
+          </Field>
+          <Field
+            data-invalid={
+              !!(
+                formik.errors.content?.description &&
+                formik.touched.content?.description
+              )
+            }
+          >
+            <FieldLabel htmlFor="description">
+              Description <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Textarea
+              id="description"
+              placeholder="type description here"
+              className="min-h-30 bg-white resize-none"
+              aria-invalid={
+                !!(
+                  formik.errors.content?.description &&
+                  formik.touched.content?.description
+                )
               }
-              className="flex-1 min-w-[200px] outline-none"
+              {...formik.getFieldProps("content.description")}
             />
-          </div>
-          <p className="text-gray-500 text-xs mt-1">
-            Press Enter or Space to add a tool. Backspace to remove last tool.
-          </p>
-          {formik.errors.tools && formik.touched.tools && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.tools}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Demo URL <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="url"
-            name="demo"
-            value={formik.values.demo}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.demo && formik.touched.demo && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.demo}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Code URL <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="url"
-            name="code"
-            value={formik.values.code}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.code && formik.touched.code && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.code}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="content.description"
-            value={formik.values.content.description}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-            rows="4"
-          />
-          {formik.errors.content?.description &&
-            formik.touched.content?.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.content.description}
-              </p>
-            )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Mobile Preview URL <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="url"
-              name="content.responsive.mobile"
-              value={formik.values.content.responsive.mobile}
-              onChange={formik.handleChange}
-              className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-            />
-            {formik.errors.content?.responsive?.mobile &&
-              formik.touched.content?.responsive?.mobile && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.content.responsive.mobile}
-                </p>
+            {formik.touched.content?.description &&
+              formik.errors.content?.description && (
+                <FieldError>{formik.errors.content.description}</FieldError>
               )}
+          </Field>
+          <div className="grid grid-cols-2 gap-2">
+            <Field
+              data-invalid={
+                !!(
+                  formik.touched.content?.responsive?.mobile &&
+                  formik.errors.content?.responsive?.mobile
+                )
+              }
+            >
+              <FieldLabel htmlFor="mobile">Mobile preview URL</FieldLabel>
+              <Input
+                type="url"
+                id="mobile"
+                className="bg-white"
+                placeholder="type mobile preview URL here"
+                aria-invalid={
+                  !!(
+                    formik.touched.content?.responsive?.mobile &&
+                    formik.errors.content?.responsive?.mobile
+                  )
+                }
+                {...formik.getFieldProps("content.responsive.mobile")}
+              />
+              {formik.touched.content?.responsive?.mobile &&
+                formik.errors.content?.responsive?.mobile && (
+                  <FieldError>
+                    {formik.errors.content.responsive.mobile}
+                  </FieldError>
+                )}
+            </Field>
+            <Field
+              data-invalid={
+                !!(
+                  formik.touched.content?.responsive?.desktop &&
+                  formik.errors.content?.responsive?.desktop
+                )
+              }
+            >
+              <FieldLabel htmlFor="desktop">Desktop preview URL</FieldLabel>
+              <Input
+                type="url"
+                id="desktop"
+                placeholder="type desktop preview URL here"
+                aria-invalid={
+                  !!(
+                    formik.touched.content?.responsive?.desktop &&
+                    formik.errors.content?.responsive?.desktop
+                  )
+                }
+                {...formik.getFieldProps("content.responsive.desktop")}
+              />
+              {formik.touched.content?.responsive?.desktop &&
+                formik.errors.content?.responsive?.desktop && (
+                  <FieldError>
+                    {formik.errors.content.responsive.desktop}
+                  </FieldError>
+                )}
+            </Field>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Desktop Preview URL <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="url"
-              name="content.responsive.desktop"
-              value={formik.values.content.responsive.desktop}
-              onChange={formik.handleChange}
-              className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+        </FieldGroup>
+      </FieldSet>
+      <FieldSeparator></FieldSeparator>
+      <FieldSet>
+        <FieldGroup>
+          <FieldLegend className="mt-4" dir="rtl">
+            الترجمة العربية
+          </FieldLegend>
+          <Field
+            dir="rtl"
+            data-invalid={
+              !!(
+                formik.errors.translations?.ar?.title &&
+                formik.touched.translations?.ar?.title
+              )
+            }
+          >
+            <FieldLabel htmlFor="arabicTitle">العنوان</FieldLabel>
+            <Input
+              type="text"
+              id="arabicTitle"
+              placeholder="ادخل العنوان هنا"
+              className="bg-white"
+              aria-invalid={
+                !!(
+                  formik.errors.translations?.ar?.title &&
+                  formik.touched.translations?.ar?.title
+                )
+              }
+              {...formik.getFieldProps("translations.ar.title")}
             />
-            {formik.errors.content?.responsive?.desktop &&
-              formik.touched.content?.responsive?.desktop && (
-                <p className="text-red-500 text-sm mt-1">
-                  {formik.errors.content.responsive.desktop}
-                </p>
+            {formik.errors.translations?.ar?.title &&
+              formik.touched.translations?.ar?.title && (
+                <FieldError>{formik.errors.translations?.ar?.title}</FieldError>
               )}
-          </div>
-        </div>
-      </div>
-
-      {/* Arabic Translations Section */}
-      <fieldset className="border border-gray-300 rounded-lg p-4 space-y-4">
-        <legend className="text-lg font-semibold px-2">
-          Arabic Translations (الترجمة العربية)
-        </legend>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Arabic Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="translations.ar.title"
-            value={formik.values.translations.ar.title}
-            onChange={formik.handleChange}
+          </Field>
+          <Field
             dir="rtl"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.translations?.ar?.title &&
-            formik.touched.translations?.ar?.title && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.translations.ar.title}
-              </p>
-            )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Arabic Summary <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="translations.ar.summary"
-            value={formik.values.translations.ar.summary}
-            onChange={formik.handleChange}
+            data-invalid={
+              !!(
+                formik.errors.translations?.ar?.summary &&
+                formik.touched.translations?.ar?.summary
+              )
+            }
+          >
+            <FieldLabel htmlFor="arabicSummary">الملخص</FieldLabel>
+            <Textarea
+              id="arabicSummary"
+              placeholder="ادخل النص هنا"
+              className="min-h-24 bg-white resize-none"
+              aria-invalid={
+                !!(
+                  formik.errors.translations?.ar?.summary &&
+                  formik.touched.translations?.ar?.summary
+                )
+              }
+              {...formik.getFieldProps("translations.ar.summary")}
+            />
+            {formik.errors.translations?.ar?.summary &&
+              formik.touched.translations?.ar?.summary && (
+                <FieldError>
+                  {formik.errors.translations?.ar?.summary}
+                </FieldError>
+              )}
+          </Field>
+          <Field
             dir="rtl"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-            rows="3"
-          />
-          {formik.errors.translations?.ar?.summary &&
-            formik.touched.translations?.ar?.summary && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.translations.ar.summary}
-              </p>
-            )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Arabic Description <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="translations.ar.content.description"
-            value={formik.values.translations.ar.content.description}
-            onChange={formik.handleChange}
-            dir="rtl"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-            rows="4"
-          />
-          {formik.errors.translations?.ar?.content?.description &&
-            formik.touched.translations?.ar?.content?.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.translations.ar.content.description}
-              </p>
-            )}
-        </div>
-      </fieldset>
-
-      {/* Form Actions */}
-      <div className="pt-6 flex gap-3">
-        <button
+            data-invalid={
+              !!(
+                formik.errors.translations?.ar?.content?.description &&
+                formik.touched.translations?.ar?.content?.description
+              )
+            }
+          >
+            <FieldLabel htmlFor="arabicDescription">الوصف</FieldLabel>
+            <Textarea
+              id="arabicDescription"
+              placeholder="ادخل النص هنا"
+              className="min-h-30 bg-white resize-none"
+              aria-invalid={
+                !!(
+                  formik.errors.translations?.ar?.content?.description &&
+                  formik.touched.translations?.ar?.content?.description
+                )
+              }
+              {...formik.getFieldProps("translations.ar.content.description")}
+            />
+            {formik.errors.translations?.ar?.content?.description &&
+              formik.touched.translations?.ar?.content?.description && (
+                <FieldError>
+                  {formik.errors.translations?.ar?.content?.description}
+                </FieldError>
+              )}
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+      <div className="mt-6 flex justify-center gap-3">
+        <Button
           type="submit"
           disabled={mutation.isPending}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          className="w-full max-w-md cursor-pointer"
         >
           {mutation.isPending
             ? `${mode === "edit" ? "Updating..." : "Creating..."}`
             : mode === "edit"
             ? "Update Project"
             : "Create Project"}
-        </button>
-        <Link
-          href="."
-          className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-        >
-          Cancel
-        </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href=".">Cancel</Link>
+        </Button>
       </div>
     </form>
   );

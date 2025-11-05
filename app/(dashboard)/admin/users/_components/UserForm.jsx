@@ -30,7 +30,7 @@ export default function UserForm() {
     },
   });
   return (
-    <form onSubmit={formik.handleSubmit} noValidate className="space-y-4">
+    <form onSubmit={formik.handleSubmit} noValidate className="space-y-6">
       <Field data-invalid={!!(formik.touched.name && formik.errors.name)}>
         <FieldLabel htmlFor="name">
           Name <span className="text-red-500">*</span>
@@ -44,7 +44,7 @@ export default function UserForm() {
           aria-invalid={!!(formik.touched.name && formik.errors.name)}
         />
         {formik.touched.name && formik.errors.name && (
-          <FieldError id="name-error">{formik.errors.name}</FieldError>
+          <FieldError>{formik.errors.name}</FieldError>
         )}
       </Field>
       <Field data-invalid={!!(formik.touched.email && formik.errors.email)}>
@@ -60,7 +60,7 @@ export default function UserForm() {
           aria-invalid={!!(formik.touched.email && formik.errors.email)}
         />
         {formik.touched.email && formik.errors.email && (
-          <FieldError id="email-error">{formik.errors.email}</FieldError>
+          <FieldError>{formik.errors.email}</FieldError>
         )}
       </Field>
       <Field
@@ -78,7 +78,7 @@ export default function UserForm() {
           aria-invalid={!!(formik.touched.password && formik.errors.password)}
         />
         {formik.touched.password && formik.errors.password && (
-          <FieldError id="password-error">{formik.errors.password}</FieldError>
+          <FieldError>{formik.errors.password}</FieldError>
         )}
       </Field>
       <Field data-invalid={!!(formik.touched.role && formik.errors.role)}>
@@ -104,7 +104,7 @@ export default function UserForm() {
           </SelectContent>
         </Select>
         {formik.touched.role && formik.errors.role && (
-          <FieldError id="role-error">{formik.errors.role}</FieldError>
+          <FieldError>{formik.errors.role}</FieldError>
         )}
       </Field>
       <div className="flex gap-3 justify-center pt-2">

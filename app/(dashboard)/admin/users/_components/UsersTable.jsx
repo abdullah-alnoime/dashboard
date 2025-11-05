@@ -88,7 +88,7 @@ export default function UsersTable() {
         </div>
         <div className="grid gap-4">
           <div className="flex justify-between items-center rounded-lg">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton
                 key={i}
                 className="h-[30px] w-[120px] bg-neutral-200 rounded-full"
@@ -100,7 +100,7 @@ export default function UsersTable() {
               key={rowIndex}
               className="flex justify-between items-center gap-4 border-b py-2"
             >
-              {Array.from({ length: 5 }).map((_, cellIndex) => (
+              {Array.from({ length: 6 }).map((_, cellIndex) => (
                 <Skeleton
                   key={cellIndex}
                   className="h-[25px] w-[120px] rounded-full"
@@ -172,16 +172,22 @@ export default function UsersTable() {
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-100">
-              {["Name", "Email", "Role", "Status", "Actions"].map((col) => (
-                <TableHead key={col} className="font-bold pointer-events-none">
-                  {col}
-                </TableHead>
-              ))}
+              {["User Id", "Name", "Email", "Role", "Status", "Actions"].map(
+                (col) => (
+                  <TableHead
+                    key={col}
+                    className="font-bold pointer-events-none"
+                  >
+                    {col}
+                  </TableHead>
+                )
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user.id}>
+                <TableCell>{user.id}</TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
@@ -342,7 +348,12 @@ export default function UsersTable() {
                 setRoleMutation.isPending
               }
             >
-              Confirm
+              {banUserMutation.isPending ||
+              unbanUserMutation.isPending ||
+              removeUserMutation.isPending ||
+              setRoleMutation.isPending
+                ? "Deleting..."
+                : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>

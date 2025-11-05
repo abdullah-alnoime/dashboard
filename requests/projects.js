@@ -5,16 +5,16 @@ export const getProjects = async () => {
     const { data } = await apiClient.get("/project");
     return data.contents;
   } catch (error) {
-    throw new Error(error.message || "Failed to fetch projects");
+    throw new Error(error.response.data.msg || "Failed to fetch projects");
   }
 };
 
 export const getProject = async (id) => {
   try {
     const { data } = await apiClient.get(`/project/${id}`);
-    return data;
+    return data.content;
   } catch (error) {
-    throw new Error(error.message || "Failed to fetch project");
+    throw new Error(error.response.data.msg || "Failed to fetch project");
   }
 };
 
@@ -23,7 +23,7 @@ export const createProject = async (payload) => {
     const { data } = await apiClient.post("/project", payload);
     return data;
   } catch (error) {
-    throw new Error(error.message || "Failed to create project");
+    throw new Error(error.response.data.msg || "Failed to create project");
   }
 };
 
@@ -32,7 +32,7 @@ export const updateProject = async (id, payload) => {
     const { data } = await apiClient.patch(`/project/${id}`, payload);
     return data;
   } catch (error) {
-    throw new Error(error.message || "Failed to update project");
+    throw new Error(error.response.data.msg || "Failed to update project");
   }
 };
 
@@ -41,6 +41,6 @@ export const removeProject = async (id) => {
     const { data } = await apiClient.delete(`/project/${id}`);
     return data;
   } catch (error) {
-    throw new Error(error.message || "Failed to delete project");
+    throw new Error(error.response.data.msg || "Failed to delete project");
   }
 };

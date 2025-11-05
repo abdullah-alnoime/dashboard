@@ -25,7 +25,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/dashboard"
-                    className="text-gray-700 hover:text-blue-600 transition"
+                    className="text-blue-600 hover:underline"
                   >
                     Dashboard
                   </Link>
@@ -40,13 +40,13 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/signin"
-                    className="text-gray-700 hover:text-blue-600 hover:underline transition"
+                    className="text-blue-600 hover:underline"
                   >
                     Sign In
                   </Link>
                   <Link
                     href="/signup"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                   >
                     Get Started
                   </Link>

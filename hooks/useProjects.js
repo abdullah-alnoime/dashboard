@@ -8,10 +8,10 @@ import {
   removeProject,
 } from "@/requests/projects";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function useProjects() {
   const { permissions } = usePermissions();
-
   return useQuery({
     queryKey: ["projects"],
     queryFn: getProjects,
@@ -20,57 +20,45 @@ export function useProjects() {
   });
 }
 
-export function useProject(projectId) {
+export function useProject(id) {
   const { permissions } = usePermissions();
-
   return useQuery({
-    queryKey: ["projects", projectId],
-    queryFn: () => getProject(projectId),
-    enabled: !!projectId && permissions.canReadProject,
+    queryKey: ["projects", id],
+    queryFn: () => getProject(id),
+    enabled: !!id && permissions.canReadProject,
     onError: (error) => toast.error(error.message),
   });
 }
 
-export function useCreateProject() {
+export function useUpsertProject(mode = "edit") {
   const { permissions } = usePermissions();
+  const router = useRouter();
   const queryClient = useQueryClient();
-
+  const isEdit = mode === "edit";
   return useMutation({
-    mutationFn: createProject,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["projects"]);
-      toast.success("Project created successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to create project");
-    },
+    mutationFn: isEdit
+      ? ({ id, data }) => updateProject(id, data)
+      : (data) => createProject(data),
     onMutate: () => {
-      if (!permissions.canCreateProject) {
-        toast.error("You don't have permission to create projects");
-        throw new Error("Insufficient permissions");
+      if (!isEdit && !permissions.canCreateProject) {
+        throw new Error("You don't have permission to create projects");
+      }
+      if (isEdit && !permissions.canUpdateProject) {
+        throw new Error("You don't have permission to edit projects");
       }
     },
-  });
-}
-
-export function useUpdateProject() {
-  const { permissions } = usePermissions();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }) => updateProject(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(["projects"]);
-      toast.success("Project updated successfully");
+      toast.success(
+        isEdit ? "Project updated successfully" : "Project created successfully"
+      );
+      router.back();
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to update project");
-    },
-    onMutate: () => {
-      if (!permissions.canUpdateProject) {
-        toast.error("You don't have permission to edit projects");
-        throw new Error("Insufficient permissions");
-      }
+      toast.error(
+        error.message ||
+          (isEdit ? "Failed to update project" : "Failed to create project")
+      );
     },
   });
 }

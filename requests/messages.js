@@ -5,7 +5,7 @@ export const getMessages = async () => {
     const { data } = await apiClient.get("/message");
     return data.contents;
   } catch (error) {
-    throw new Error(error.message || "Failed to fetch messages");
+    throw new Error(error.response.data.msg || "Failed to fetch messages");
   }
 };
 
@@ -14,7 +14,7 @@ export const getMessage = async (id) => {
     const { data } = await apiClient.get(`/message/${id}`);
     return data;
   } catch (error) {
-    throw new Error(error.message || "Failed to fetch message");
+    throw new Error(error.response.data.msg || "Failed to fetch message");
   }
 };
 
@@ -23,7 +23,7 @@ export const createMessage = async (payload) => {
     const { data } = await apiClient.post("/message", payload);
     return data;
   } catch (error) {
-    throw new Error(error.message || "Failed to send message");
+    throw new Error(error.response.data.msg || "Failed to send message");
   }
 };
 
@@ -32,6 +32,6 @@ export const removeMessage = async (id) => {
     const { data } = await apiClient.delete(`/message/${id}`);
     return data;
   } catch (error) {
-    throw new Error(error.message || "Failed to delete message");
+    throw new Error(error.response.data.msg || "Failed to delete message");
   }
 };

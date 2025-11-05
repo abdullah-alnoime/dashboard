@@ -14,7 +14,7 @@ export default async function ProjectPage({ params }) {
     queryFn: getProject(id),
   });
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-center">
+    <div className="flex justify-center items-center">
       <HydrationBoundary state={dehydrate(queryClient)}>
         <ProjectDetails projectId={id} />
       </HydrationBoundary>

@@ -12,11 +12,11 @@ import { useSignIn } from "@/hooks/useAuth";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const { mutateAsync, isPending } = useSignIn();
+  const { mutate, isPending } = useSignIn();
   const { handleSubmit, getFieldProps, errors, touched, isValid } = useFormik({
     initialValues: { email: "", password: "" },
     validationSchema: schema,
-    onSubmit: async (values) => await mutateAsync(values),
+    onSubmit: (values) => mutate(values),
   });
   return (
     <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
