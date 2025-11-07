@@ -3,7 +3,8 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import ProjectsTable from "./_components/ProjectsTable";
+import { ProjectsSkeleton } from "./_components/skeleton";
+import ProjectsTable from "./_components/Projects";
 import { getProjects } from "@/requests/projects";
 import { Suspense } from "react";
 
@@ -15,7 +16,7 @@ export default async function ProjectsPage() {
   });
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <Suspense fallback={<div>loading projects..</div>}>
+      <Suspense fallback={<ProjectsSkeleton />}>
         <ProjectsTable />
       </Suspense>
     </HydrationBoundary>

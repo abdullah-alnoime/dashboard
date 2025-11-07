@@ -19,44 +19,62 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useProject, useUpsertProject } from "@/hooks/useProjects";
 import { schema } from "./validation/schema";
+import { ProjectFormSkeleton } from "./skeleton";
+import { NoProject } from "./projects";
+import { useRouter } from "next/navigation";
 
-export default function ProjectForm({ mode, projectId }) {
-  const [toolInput, setToolInput] = useState("");
-  const { data: project = [], isLoading } = useProject(projectId);
-  const mutation = useUpsertProject(mode);
-  const formik = useFormik({
-    enableReinitialize: true,
-    initialValues: project?.content || {
-      preview: "",
+const initialProject = {
+  preview: "",
+  title: "",
+  summary: "",
+  tools: [],
+  demo: "",
+  code: "",
+  content: {
+    description: "",
+    responsive: {
+      mobile: "",
+      desktop: "",
+    },
+  },
+  translations: {
+    ar: {
       title: "",
       summary: "",
-      tools: [],
-      demo: "",
-      code: "",
       content: {
         description: "",
-        responsive: {
-          mobile: "",
-          desktop: "",
-        },
-      },
-      translations: {
-        ar: {
-          title: "",
-          summary: "",
-          content: {
-            description: "",
-          },
-        },
       },
     },
-    // validationSchema: schema,
+  },
+};
+export default function ProjectForm({ mode, projectId }) {
+  const router = useRouter();
+  const [toolInput, setToolInput] = useState("");
+  const { data: project, isError, error, isLoading } = useProject(projectId);
+  const { mutate, isPending } = useUpsertProject(mode);
+  const {
+    handleSubmit,
+    getFieldProps,
+    setFieldValue,
+    handleBlur,
+    values,
+    touched,
+    errors,
+    isValid,
+    dirty,
+  } = useFormik({
+    enableReinitialize: true,
+    initialValues: project || initialProject,
+    validationSchema: schema,
     onSubmit: (values) => {
       if (mode === "edit") {
         const { _id, updatedAt, createdAt, __v, ...data } = values;
-        mutation.mutate({ id: projectId, data });
+        mutate(
+          { id: projectId, data },
+          { onSuccess: () => router.push("/admin/projects") }
+        );
       } else {
-        mutation.mutate(values);
+        mutate(values, { onSuccess: () => router.push("/admin/projects") });
       }
     },
   });
@@ -64,28 +82,30 @@ export default function ProjectForm({ mode, projectId }) {
     if (e.key === "Enter") {
       e.preventDefault();
       const tool = toolInput.trim();
-      if (tool && !formik.values.tools.includes(tool)) {
-        formik.setFieldValue("tools", [...formik.values.tools, tool]);
+      if (tool && !values.tools.includes(tool)) {
+        setFieldValue("tools", [...values.tools, tool]);
         setToolInput("");
       }
     }
   };
   const removeTool = (indexToRemove) => {
-    const newTools = formik.values.tools.filter(
-      (_, index) => index !== indexToRemove
-    );
-    formik.setFieldValue("tools", newTools);
+    const newTools = values.tools.filter((_, index) => index !== indexToRemove);
+    setFieldValue("tools", newTools);
   };
-  if (isLoading) {
-    return <div>loading fields..</div>;
-  }
+  if (isLoading) return <ProjectFormSkeleton />;
+  if (isError) return <NoProject msg={error.message} />;
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      className="p-6 space-y-6 outline shadow-md rounded-lg bg-white"
+    >
       <FieldSet>
         <FieldGroup>
-          <Field
-            data-invalid={!!(formik.errors.preview && formik.touched.preview)}
-          >
+          <FieldLegend>
+            {mode === "edit" ? "Update" : "Create a New"} Project
+          </FieldLegend>
+          <Field data-invalid={!!(errors.preview && touched.preview)}>
             <FieldLabel htmlFor="preview">
               Preview URL <span className="text-red-500">*</span>
             </FieldLabel>
@@ -93,15 +113,14 @@ export default function ProjectForm({ mode, projectId }) {
               type="url"
               id="preview"
               placeholder="type preview URL here"
-              className="bg-white"
-              aria-invalid={!!(formik.errors.preview && formik.touched.preview)}
-              {...formik.getFieldProps("preview")}
+              aria-invalid={!!(errors.preview && touched.preview)}
+              {...getFieldProps("preview")}
             />
-            {formik.errors.preview && formik.touched.preview && (
-              <FieldError>{formik.errors.preview}</FieldError>
+            {errors.preview && touched.preview && (
+              <FieldError>{errors.preview}</FieldError>
             )}
           </Field>
-          <Field data-invalid={!!(formik.errors.title && formik.touched.title)}>
+          <Field data-invalid={!!(errors.title && touched.title)}>
             <FieldLabel htmlFor="title">
               Title <span className="text-red-500">*</span>
             </FieldLabel>
@@ -109,43 +128,40 @@ export default function ProjectForm({ mode, projectId }) {
               type="text"
               id="title"
               placeholder="type title here"
-              className="bg-white"
-              aria-invalid={!!(formik.errors.title && formik.touched.title)}
-              {...formik.getFieldProps("title")}
+              aria-invalid={!!(errors.title && touched.title)}
+              {...getFieldProps("title")}
             />
-            {formik.errors.title && formik.touched.title && (
-              <FieldError>{formik.errors.title}</FieldError>
+            {errors.title && touched.title && (
+              <FieldError>{errors.title}</FieldError>
             )}
           </Field>
-          <Field
-            data-invalid={!!(formik.errors.summary && formik.touched.summary)}
-          >
+          <Field data-invalid={!!(errors.summary && touched.summary)}>
             <FieldLabel htmlFor="summary">
               Summary <span className="text-red-500">*</span>
             </FieldLabel>
             <Textarea
               id="summary"
               placeholder="type summary here"
-              className="min-h-24 bg-white resize-none"
-              aria-invalid={!!(formik.errors.summary && formik.touched.summary)}
-              {...formik.getFieldProps("summary")}
+              className="min-h-24 resize-none"
+              aria-invalid={!!(errors.summary && touched.summary)}
+              {...getFieldProps("summary")}
             />
-            {formik.errors.summary && formik.touched.summary && (
-              <FieldError>{formik.errors.summary}</FieldError>
+            {errors.summary && touched.summary && (
+              <FieldError>{errors.summary}</FieldError>
             )}
           </Field>
-          <Field data-invalid={!!(formik.errors.tools && formik.touched.tools)}>
+          <Field data-invalid={!!(errors.tools && touched.tools)}>
             <FieldLabel htmlFor="tools">
               Tools <span className="text-red-500">*</span>
             </FieldLabel>
             <div className="flex gap-1.5 flex-wrap">
-              {formik.values.tools.map((tool, index) => (
+              {values.tools?.map((tool, index) => (
                 <Badge key={tool} className="ps-3 pe-1 py-1 gap-1">
                   <span>{tool}</span>
                   <Button
                     type="button"
                     onClick={() => removeTool(index)}
-                    className="w-6 h-6 rounded-full hover:text-neutral-900 hover:bg-neutral-100"
+                    className="w-6 h-6 rounded-full hover:text-neutral-900 hover:bg-neutral-100 cursor-pointer"
                     aria-label={`Remove ${tool}`}
                   >
                     <X className="w-1 h-1" />
@@ -157,19 +173,19 @@ export default function ProjectForm({ mode, projectId }) {
                 id="tools"
                 name="tools"
                 value={toolInput}
-                className="bg-white flex-1 min-w-[200px]"
+                className="flex-1 min-w-[200px]"
                 onChange={(e) => setToolInput(e.target.value)}
-                onBlur={formik.handleBlur}
-                onKeyDown={handleToolsKeyDown}
-                aria-invalid={!!(formik.errors.tools && formik.touched.tools)}
+                onBlur={handleBlur}
+                onKeyDown={(e) => handleToolsKeyDown(e)}
+                aria-invalid={!!(errors.tools && touched.tools)}
                 placeholder="type a tool and press Enter"
               />
             </div>
-            {formik.touched.tools && formik.errors.tools && (
-              <FieldError>{formik.errors.tools}</FieldError>
+            {touched.tools && errors.tools && (
+              <FieldError>{errors.tools}</FieldError>
             )}
           </Field>
-          <Field data-invalid={!!(formik.errors.demo && formik.touched.demo)}>
+          <Field data-invalid={!!(errors.demo && touched.demo)}>
             <FieldLabel htmlFor="demo">
               Demo URL <span className="text-red-500">*</span>
             </FieldLabel>
@@ -177,15 +193,14 @@ export default function ProjectForm({ mode, projectId }) {
               type="url"
               id="demo"
               placeholder="type demo URL here"
-              className="bg-white"
-              aria-invalid={!!(formik.errors.demo && formik.touched.demo)}
-              {...formik.getFieldProps("demo")}
+              aria-invalid={!!(errors.demo && touched.demo)}
+              {...getFieldProps("demo")}
             />
-            {formik.touched.demo && formik.errors.demo && (
-              <FieldError>{formik.errors.demo}</FieldError>
+            {touched.demo && errors.demo && (
+              <FieldError>{errors.demo}</FieldError>
             )}
           </Field>
-          <Field data-invalid={!!(formik.errors.code && formik.touched.code)}>
+          <Field data-invalid={!!(errors.code && touched.code)}>
             <FieldLabel htmlFor="code">
               Code URL <span className="text-red-500">*</span>
             </FieldLabel>
@@ -193,20 +208,16 @@ export default function ProjectForm({ mode, projectId }) {
               type="url"
               id="code"
               placeholder="type code URL here"
-              className="bg-white"
-              aria-invalid={!!(formik.errors.code && formik.touched.code)}
-              {...formik.getFieldProps("code")}
+              aria-invalid={!!(errors.code && touched.code)}
+              {...getFieldProps("code")}
             />
-            {formik.touched.code && formik.errors.code && (
-              <FieldError>{formik.errors.code}</FieldError>
+            {touched.code && errors.code && (
+              <FieldError>{errors.code}</FieldError>
             )}
           </Field>
           <Field
             data-invalid={
-              !!(
-                formik.errors.content?.description &&
-                formik.touched.content?.description
-              )
+              !!(errors.content?.description && touched.content?.description)
             }
           >
             <FieldLabel htmlFor="description">
@@ -215,26 +226,22 @@ export default function ProjectForm({ mode, projectId }) {
             <Textarea
               id="description"
               placeholder="type description here"
-              className="min-h-30 bg-white resize-none"
+              className="min-h-30 resize-none"
               aria-invalid={
-                !!(
-                  formik.errors.content?.description &&
-                  formik.touched.content?.description
-                )
+                !!(errors.content?.description && touched.content?.description)
               }
-              {...formik.getFieldProps("content.description")}
+              {...getFieldProps("content.description")}
             />
-            {formik.touched.content?.description &&
-              formik.errors.content?.description && (
-                <FieldError>{formik.errors.content.description}</FieldError>
-              )}
+            {touched.content?.description && errors.content?.description && (
+              <FieldError>{errors.content.description}</FieldError>
+            )}
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field
               data-invalid={
                 !!(
-                  formik.touched.content?.responsive?.mobile &&
-                  formik.errors.content?.responsive?.mobile
+                  errors.content?.responsive?.mobile &&
+                  touched.content?.responsive?.mobile
                 )
               }
             >
@@ -242,28 +249,19 @@ export default function ProjectForm({ mode, projectId }) {
               <Input
                 type="url"
                 id="mobile"
-                className="bg-white"
                 placeholder="type mobile preview URL here"
-                aria-invalid={
-                  !!(
-                    formik.touched.content?.responsive?.mobile &&
-                    formik.errors.content?.responsive?.mobile
-                  )
-                }
-                {...formik.getFieldProps("content.responsive.mobile")}
+                {...getFieldProps("content.responsive.mobile")}
               />
-              {formik.touched.content?.responsive?.mobile &&
-                formik.errors.content?.responsive?.mobile && (
-                  <FieldError>
-                    {formik.errors.content.responsive.mobile}
-                  </FieldError>
+              {touched.content?.responsive?.mobile &&
+                errors.content?.responsive?.mobile && (
+                  <FieldError>{errors.content.responsive.mobile}</FieldError>
                 )}
             </Field>
             <Field
               data-invalid={
                 !!(
-                  formik.touched.content?.responsive?.desktop &&
-                  formik.errors.content?.responsive?.desktop
+                  errors.content?.responsive?.desktop &&
+                  touched.content?.responsive?.desktop
                 )
               }
             >
@@ -272,36 +270,29 @@ export default function ProjectForm({ mode, projectId }) {
                 type="url"
                 id="desktop"
                 placeholder="type desktop preview URL here"
-                aria-invalid={
-                  !!(
-                    formik.touched.content?.responsive?.desktop &&
-                    formik.errors.content?.responsive?.desktop
-                  )
-                }
-                {...formik.getFieldProps("content.responsive.desktop")}
+                {...getFieldProps("content.responsive.desktop")}
               />
-              {formik.touched.content?.responsive?.desktop &&
-                formik.errors.content?.responsive?.desktop && (
-                  <FieldError>
-                    {formik.errors.content.responsive.desktop}
-                  </FieldError>
+              {touched.content?.responsive?.desktop &&
+                errors.content?.responsive?.desktop && (
+                  <FieldError>{errors.content.responsive.desktop}</FieldError>
                 )}
             </Field>
           </div>
         </FieldGroup>
       </FieldSet>
-      <FieldSeparator></FieldSeparator>
+      <FieldSeparator />
       <FieldSet>
         <FieldGroup>
           <FieldLegend className="mt-4" dir="rtl">
             الترجمة العربية
           </FieldLegend>
+
           <Field
             dir="rtl"
             data-invalid={
               !!(
-                formik.errors.translations?.ar?.title &&
-                formik.touched.translations?.ar?.title
+                errors.translations?.ar?.title &&
+                touched.translations?.ar?.title
               )
             }
           >
@@ -310,26 +301,19 @@ export default function ProjectForm({ mode, projectId }) {
               type="text"
               id="arabicTitle"
               placeholder="ادخل العنوان هنا"
-              className="bg-white"
-              aria-invalid={
-                !!(
-                  formik.errors.translations?.ar?.title &&
-                  formik.touched.translations?.ar?.title
-                )
-              }
-              {...formik.getFieldProps("translations.ar.title")}
+              {...getFieldProps("translations.ar.title")}
             />
-            {formik.errors.translations?.ar?.title &&
-              formik.touched.translations?.ar?.title && (
-                <FieldError>{formik.errors.translations?.ar?.title}</FieldError>
+            {errors.translations?.ar?.title &&
+              touched.translations?.ar?.title && (
+                <FieldError>{errors.translations.ar.title}</FieldError>
               )}
           </Field>
           <Field
             dir="rtl"
             data-invalid={
               !!(
-                formik.errors.translations?.ar?.summary &&
-                formik.touched.translations?.ar?.summary
+                errors.translations?.ar?.summary &&
+                touched.translations?.ar?.summary
               )
             }
           >
@@ -337,28 +321,20 @@ export default function ProjectForm({ mode, projectId }) {
             <Textarea
               id="arabicSummary"
               placeholder="ادخل النص هنا"
-              className="min-h-24 bg-white resize-none"
-              aria-invalid={
-                !!(
-                  formik.errors.translations?.ar?.summary &&
-                  formik.touched.translations?.ar?.summary
-                )
-              }
-              {...formik.getFieldProps("translations.ar.summary")}
+              className="min-h-24 resize-none"
+              {...getFieldProps("translations.ar.summary")}
             />
-            {formik.errors.translations?.ar?.summary &&
-              formik.touched.translations?.ar?.summary && (
-                <FieldError>
-                  {formik.errors.translations?.ar?.summary}
-                </FieldError>
+            {errors.translations?.ar?.summary &&
+              touched.translations?.ar?.summary && (
+                <FieldError>{errors.translations.ar.summary}</FieldError>
               )}
           </Field>
           <Field
             dir="rtl"
             data-invalid={
               !!(
-                formik.errors.translations?.ar?.content?.description &&
-                formik.touched.translations?.ar?.content?.description
+                errors.translations?.ar?.content?.description &&
+                touched.translations?.ar?.content?.description
               )
             }
           >
@@ -366,19 +342,13 @@ export default function ProjectForm({ mode, projectId }) {
             <Textarea
               id="arabicDescription"
               placeholder="ادخل النص هنا"
-              className="min-h-30 bg-white resize-none"
-              aria-invalid={
-                !!(
-                  formik.errors.translations?.ar?.content?.description &&
-                  formik.touched.translations?.ar?.content?.description
-                )
-              }
-              {...formik.getFieldProps("translations.ar.content.description")}
+              className="min-h-30 resize-none"
+              {...getFieldProps("translations.ar.content.description")}
             />
-            {formik.errors.translations?.ar?.content?.description &&
-              formik.touched.translations?.ar?.content?.description && (
+            {errors.translations?.ar?.content?.description &&
+              touched.translations?.ar?.content?.description && (
                 <FieldError>
-                  {formik.errors.translations?.ar?.content?.description}
+                  {errors.translations.ar.content.description}
                 </FieldError>
               )}
           </Field>
@@ -387,17 +357,19 @@ export default function ProjectForm({ mode, projectId }) {
       <div className="mt-6 flex justify-center gap-3">
         <Button
           type="submit"
-          disabled={mutation.isPending}
-          className="w-full max-w-md cursor-pointer"
+          disabled={isPending || !isValid || (mode === "edit" && !dirty)}
+          className="w-full max-w-sm cursor-pointer"
         >
-          {mutation.isPending
-            ? `${mode === "edit" ? "Updating..." : "Creating..."}`
+          {isPending
+            ? mode === "edit"
+              ? "Updating..."
+              : "Creating..."
             : mode === "edit"
             ? "Update Project"
             : "Create Project"}
         </Button>
         <Button variant="outline" asChild>
-          <Link href=".">Cancel</Link>
+          <Link href="/admin/projects">Cancel</Link>
         </Button>
       </div>
     </form>

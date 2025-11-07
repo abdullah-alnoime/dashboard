@@ -45,7 +45,11 @@ export default function MessageForm() {
     },
   });
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-4">
+    <form
+      onSubmit={formik.handleSubmit}
+      noValidate
+      className="p-6 space-y-6 outline shadow-md rounded-lg bg-white"
+    >
       <div>
         <label className="block text-sm font-medium mb-1">
           Name <span className="text-red-500">*</span>

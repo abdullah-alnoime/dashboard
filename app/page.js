@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 export default function HomePage() {
   const { data: session, isPending } = authClient.useSession();
   const router = useRouter();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <nav className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-50">
@@ -77,7 +76,7 @@ export default function HomePage() {
             {session ? (
               <button
                 onClick={() => router.push("/dashboard")}
-                className="px-8 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl"
+                className="px-8 py-4 bg-blue-600 text-white rounded-lg text-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl "
               >
                 Go to Dashboard
               </button>

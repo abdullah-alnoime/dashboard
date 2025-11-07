@@ -14,10 +14,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { useCreateUser } from "@/hooks/useUsers";
 import { schema } from "./validation/schema";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 export default function UserForm() {
-  const createUserMutation = useCreateUser();
-  const formik = useFormik({
+  const [showPassword, setShowPassword] = useState(false);
+  const { mutate, isPending } = useCreateUser();
+  const {
+    handleSubmit,
+    getFieldProps,
+    setFieldValue,
+    values,
+    touched: { name: tName, email: tEmail, password: tPassword, role: tRole },
+    errors: { name: eName, email: eEmail, password: ePassword, role: eRole },
+    isValid,
+  } = useFormik({
     initialValues: {
       name: "",
       email: "",
@@ -25,13 +36,15 @@ export default function UserForm() {
       role: "user",
     },
     validationSchema: schema,
-    onSubmit: (values) => {
-      createUserMutation.mutateAsync(values);
-    },
+    onSubmit: (values) => mutate(values),
   });
   return (
-    <form onSubmit={formik.handleSubmit} noValidate className="space-y-6">
-      <Field data-invalid={!!(formik.touched.name && formik.errors.name)}>
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      className="p-6 space-y-6 outline shadow-md rounded-lg bg-white"
+    >
+      <Field data-invalid={!!(tName && eName)}>
         <FieldLabel htmlFor="name">
           Name <span className="text-red-500">*</span>
         </FieldLabel>
@@ -39,15 +52,12 @@ export default function UserForm() {
           id="name"
           type="text"
           placeholder="your full name"
-          className="bg-white"
-          {...formik.getFieldProps("name")}
-          aria-invalid={!!(formik.touched.name && formik.errors.name)}
+          {...getFieldProps("name")}
+          aria-invalid={!!(tName && eName)}
         />
-        {formik.touched.name && formik.errors.name && (
-          <FieldError>{formik.errors.name}</FieldError>
-        )}
+        {tName && eName && <FieldError>{eName}</FieldError>}
       </Field>
-      <Field data-invalid={!!(formik.touched.email && formik.errors.email)}>
+      <Field data-invalid={!!(tEmail && eEmail)}>
         <FieldLabel htmlFor="email">
           Email <span className="text-red-500">*</span>
         </FieldLabel>
@@ -55,65 +65,72 @@ export default function UserForm() {
           id="email"
           type="email"
           placeholder="email address"
-          className="bg-white"
-          {...formik.getFieldProps("email")}
-          aria-invalid={!!(formik.touched.email && formik.errors.email)}
+          {...getFieldProps("email")}
+          aria-invalid={!!(tEmail && eEmail)}
         />
-        {formik.touched.email && formik.errors.email && (
-          <FieldError>{formik.errors.email}</FieldError>
-        )}
+        {tEmail && eEmail && <FieldError>{eEmail}</FieldError>}
       </Field>
-      <Field
-        data-invalid={!!(formik.touched.password && formik.errors.password)}
-      >
+      <Field data-invalid={!!(tPassword && ePassword)}>
         <FieldLabel htmlFor="password">
           Password <span className="text-red-500">*</span>
         </FieldLabel>
-        <Input
-          id="password"
-          type="password"
-          placeholder="your password"
-          className="bg-white"
-          {...formik.getFieldProps("password")}
-          aria-invalid={!!(formik.touched.password && formik.errors.password)}
-        />
-        {formik.touched.password && formik.errors.password && (
-          <FieldError>{formik.errors.password}</FieldError>
-        )}
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="your password"
+            {...getFieldProps("password")}
+            aria-invalid={!!(tPassword && ePassword)}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-0 inset-y-0 px-3 flex items-center text-gray-500 rounded-md cursor-pointer"
+          >
+            {showPassword ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+        {tPassword && ePassword && <FieldError>{ePassword}</FieldError>}
       </Field>
-      <Field data-invalid={!!(formik.touched.role && formik.errors.role)}>
+      <Field data-invalid={!!(tRole && eRole)}>
         <FieldLabel htmlFor="role">
           Role <span className="text-red-500">*</span>
         </FieldLabel>
         <Select
-          value={formik.values.role}
+          value={values.role}
           onValueChange={(value) => {
-            formik.setFieldValue("role", value);
+            setFieldValue("role", value);
           }}
         >
           <SelectTrigger
             id="role"
-            className="bg-white"
-            aria-invalid={!!(formik.touched.role && formik.errors.role)}
+            className="cursor-pointer"
+            aria-invalid={!!(tRole && eRole)}
           >
             <SelectValue placeholder="Choose user's role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="user">User</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="user" className="cursor-pointer">
+              User
+            </SelectItem>
+            <SelectItem value="admin" className="cursor-pointer">
+              Admin
+            </SelectItem>
           </SelectContent>
         </Select>
-        {formik.touched.role && formik.errors.role && (
-          <FieldError>{formik.errors.role}</FieldError>
-        )}
+        {tRole && eRole && <FieldError>{eRole}</FieldError>}
       </Field>
       <div className="flex gap-3 justify-center pt-2">
         <Button
           type="submit"
-          disabled={createUserMutation.isPending || !formik.isValid}
+          disabled={isPending || !isValid}
           className="flex-1 md:max-w-sm cursor-pointer"
         >
-          {createUserMutation.isPending ? "Creating..." : "Create User"}
+          {isPending ? "Creating..." : "Create User"}
         </Button>
         <Button variant="secondary" asChild>
           <Link

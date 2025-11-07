@@ -85,8 +85,6 @@ export default function CourseForm({ mode, courseId }) {
       mutation.mutate(data);
     },
   });
-
-  // Skills handlers
   const handleSkillsKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -128,7 +126,11 @@ export default function CourseForm({ mode, courseId }) {
   };
 
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-6">
+    <form
+      onSubmit={formik.handleSubmit}
+      noValidate
+      className="p-6 space-y-6 outline shadow-md rounded-lg bg-white"
+    >
       {/* Main Fields Section */}
       <div className="space-y-4">
         <div>

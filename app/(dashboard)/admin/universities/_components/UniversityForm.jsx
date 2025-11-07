@@ -137,7 +137,11 @@ export default function UniversityForm({ mode, universityId }) {
     formik.setFieldValue("translations.ar.skills", newSkills);
   };
   return (
-    <form onSubmit={formik.handleSubmit} className="space-y-6">
+    <form
+      onSubmit={formik.handleSubmit}
+      noValidate
+      className="p-6 space-y-6 outline shadow-md rounded-lg bg-white"
+    >
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">

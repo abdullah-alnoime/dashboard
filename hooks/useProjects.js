@@ -21,18 +21,16 @@ export function useProjects() {
 }
 
 export function useProject(id) {
-  const { permissions } = usePermissions();
   return useQuery({
     queryKey: ["projects", id],
     queryFn: () => getProject(id),
-    enabled: !!id && permissions.canReadProject,
+    enabled: !!id,
     onError: (error) => toast.error(error.message),
   });
 }
 
 export function useUpsertProject(mode = "edit") {
   const { permissions } = usePermissions();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === "edit";
   return useMutation({
@@ -52,7 +50,6 @@ export function useUpsertProject(mode = "edit") {
       toast.success(
         isEdit ? "Project updated successfully" : "Project created successfully"
       );
-      router.back();
     },
     onError: (error) => {
       toast.error(
