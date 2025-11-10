@@ -10,75 +10,59 @@ import {
 import { toast } from "sonner";
 
 export function useUniversities() {
-  const { permissions } = usePermissions();
-
   return useQuery({
     queryKey: ["universities"],
     queryFn: getUniversities,
-    enabled: permissions.canReadUniversity,
     onError: (error) => toast.error(error.message),
   });
 }
 
-export function useUniversity(universityId) {
-  const { permissions } = usePermissions();
-
+export function useUniversity(id) {
   return useQuery({
-    queryKey: ["universities", universityId],
-    queryFn: () => getUniversity(universityId),
-    enabled: !!universityId && permissions.canReadUniversity,
+    queryKey: ["universities", id],
+    queryFn: () => getUniversity(id),
+    enabled: !!id,
     onError: (error) => toast.error(error.message),
   });
 }
 
-export function useCreateUniversity() {
+export function useUpsertUniversity(mode = "edit") {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
+  const isEdit = mode === "edit";
   return useMutation({
-    mutationFn: createUniversity,
+    mutationFn: isEdit
+      ? ({ id, data }) => updateUniversity(id, data)
+      : (data) => createUniversity(data),
+    onMutate: () => {
+      if (!isEdit && !permissions.canCreateUniversity) {
+        throw new Error("You don't have permission to create universities");
+      }
+      if (isEdit && !permissions.canUpdateUniversity) {
+        throw new Error("You don't have permission to edit universities");
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(["universities"]);
-      toast.success("University created successfully");
+      toast.success(
+        isEdit
+          ? "University updated successfully"
+          : "University created successfully"
+      );
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create university");
-    },
-    onMutate: () => {
-      if (!permissions.canCreateUniversity) {
-        toast.error("You don't have permission to create universities");
-        throw new Error("Insufficient permissions");
-      }
+      toast.error(
+        error.message ||
+          (isEdit
+            ? "Failed to update university"
+            : "Failed to create university")
+      );
     },
   });
 }
-
-export function useUpdateUniversity() {
-  const { permissions } = usePermissions();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }) => updateUniversity(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["universities"]);
-      toast.success("University updated successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to update university");
-    },
-    onMutate: () => {
-      if (!permissions.canUpdateUniversity) {
-        toast.error("You don't have permission to edit universities");
-        throw new Error("Insufficient permissions");
-      }
-    },
-  });
-}
-
 export function useDeleteUniversity() {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: removeUniversity,
     onSuccess: () => {
@@ -90,8 +74,7 @@ export function useDeleteUniversity() {
     },
     onMutate: () => {
       if (!permissions.canDeleteUniversity) {
-        toast.error("You don't have permission to delete universities");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to delete universities");
       }
     },
   });

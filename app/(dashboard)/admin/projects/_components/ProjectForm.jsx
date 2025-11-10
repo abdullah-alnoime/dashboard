@@ -64,7 +64,7 @@ export default function ProjectForm({ mode, projectId }) {
     dirty,
   } = useFormik({
     enableReinitialize: true,
-    initialValues: project || initialProject,
+    initialValues: { ...initialProject, ...project },
     validationSchema: schema,
     onSubmit: (values) => {
       if (mode === "edit") {
@@ -286,7 +286,6 @@ export default function ProjectForm({ mode, projectId }) {
           <FieldLegend className="mt-4" dir="rtl">
             الترجمة العربية
           </FieldLegend>
-
           <Field
             dir="rtl"
             data-invalid={

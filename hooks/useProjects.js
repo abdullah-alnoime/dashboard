@@ -8,14 +8,12 @@ import {
   removeProject,
 } from "@/requests/projects";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 export function useProjects() {
   const { permissions } = usePermissions();
   return useQuery({
     queryKey: ["projects"],
     queryFn: getProjects,
-    enabled: permissions.canReadProject,
     onError: (error) => toast.error(error.message),
   });
 }
@@ -63,7 +61,6 @@ export function useUpsertProject(mode = "edit") {
 export function useDeleteProject() {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: removeProject,
     onSuccess: () => {
@@ -75,8 +72,7 @@ export function useDeleteProject() {
     },
     onMutate: () => {
       if (!permissions.canDeleteProject) {
-        toast.error("You don't have permission to delete projects");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to delete projects");
       }
     },
   });

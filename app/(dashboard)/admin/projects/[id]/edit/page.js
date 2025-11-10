@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import ProjectForm from "../../_components/ProjectForm";
+import { ProjectForm } from "../../_components";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import {

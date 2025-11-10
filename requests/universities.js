@@ -12,7 +12,7 @@ export const getUniversities = async () => {
 export const getUniversity = async (id) => {
   try {
     const { data } = await apiClient.get(`/education/university/${id}`);
-    return data;
+    return data.content;
   } catch (error) {
     throw new Error(error.response.data.msg || "Failed to fetch university");
   }

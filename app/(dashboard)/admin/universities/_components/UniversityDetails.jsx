@@ -22,8 +22,10 @@ export default function UniversityDetails({ universityId }) {
     graduatedAt,
     status,
     title,
-    translations: { ar },
-  } = university?.content;
+    translations: {
+      ar: { by: arBy, skills: arSkills, title: arTitle },
+    },
+  } = university;
   return (
     <div className="bg-white shadow rounded-lg p-8 max-w-3xl w-full">
       <Image src={logo} alt={`${by} logo`} width={60} height={60} unoptimized />
@@ -55,16 +57,20 @@ export default function UniversityDetails({ universityId }) {
           <strong>Skills:</strong> {skills.join(", ")}
         </p>
       )}
-      <h2 className="text-2xl font-bold my-4">Arabic translations</h2>
-      <div dir="rtl">
-        <h3 className="text-3xl font-bold mb-4">{ar.title}</h3>
-        <p className="text-gray-700 mb-4">{ar.by}</p>
-        {ar.skills && (
-          <p className="text-gray-700 mb-4">
-            <strong>المهارات:</strong> {ar.skills.join(", ")}
-          </p>
-        )}
-      </div>
+      {(arBy || arSkills || arTitle) && (
+        <>
+          <h2 className="text-2xl font-bold my-4">Arabic translations</h2>
+          <div dir="rtl">
+            {arTitle && <h3 className="text-3xl font-bold mb-4">{arTitle}</h3>}
+            {arBy && <p className="text-gray-700 mb-4">{arBy}</p>}
+            {arSkills && (
+              <p className="text-gray-700 mb-4">
+                <strong>المهارات:</strong> {arSkills.join(", ")}
+              </p>
+            )}
+          </div>
+        </>
+      )}
       <div className="flex gap-3 mt-6">
         <Link
           href={`${universityId}/edit`}

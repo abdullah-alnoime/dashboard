@@ -10,23 +10,18 @@ import {
 import { toast } from "sonner";
 
 export function useCourses() {
-  const { permissions } = usePermissions();
-
   return useQuery({
     queryKey: ["courses"],
     queryFn: getCourses,
-    enabled: permissions.canReadCourse,
     onError: (error) => toast.error(error.message),
   });
 }
 
-export function useCourse(courseId) {
-  const { permissions } = usePermissions();
-
+export function useCourse(id) {
   return useQuery({
-    queryKey: ["courses", courseId],
-    queryFn: () => getCourse(courseId),
-    enabled: !!courseId && permissions.canReadCourse,
+    queryKey: ["courses", id],
+    queryFn: () => getCourse(id),
+    enabled: !!id,
     onError: (error) => toast.error(error.message),
   });
 }
@@ -34,7 +29,6 @@ export function useCourse(courseId) {
 export function useCreateCourse() {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: createCourse,
     onSuccess: () => {
@@ -46,8 +40,7 @@ export function useCreateCourse() {
     },
     onMutate: () => {
       if (!permissions.canCreateCourse) {
-        toast.error("You don't have permission to create courses");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to create courses");
       }
     },
   });
@@ -68,8 +61,7 @@ export function useUpdateCourse() {
     },
     onMutate: () => {
       if (!permissions.canUpdateCourse) {
-        toast.error("You don't have permission to edit courses");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to edit courses");
       }
     },
   });
@@ -78,7 +70,6 @@ export function useUpdateCourse() {
 export function useDeleteCourse() {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: removeCourse,
     onSuccess: () => {
@@ -90,8 +81,7 @@ export function useDeleteCourse() {
     },
     onMutate: () => {
       if (!permissions.canDeleteCourse) {
-        toast.error("You don't have permission to delete courses");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to delete courses");
       }
     },
   });

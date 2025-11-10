@@ -136,7 +136,7 @@ export function useChangePassword() {
       toast.error(error.message || "Failed to changed password");
     },
     onMutate: () => {
-      if (!permissions.canChangePassword) {
+      if (!permissions.isAuthenticated) {
         throw new Error("You don't have permission to change password");
       }
     },

@@ -11,7 +11,7 @@ export default async function UniversityPage({ params }) {
   const { id } = await params;
   await queryClient.prefetchQuery({
     queryKey: ["universities", id],
-    queryFn: getUniversity(id),
+    queryFn: () => getUniversity(id),
   });
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-center">

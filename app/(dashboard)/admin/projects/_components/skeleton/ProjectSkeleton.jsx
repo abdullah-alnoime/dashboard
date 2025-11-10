@@ -3,7 +3,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function ProjectSkeleton() {
   return (
     <div className="w-full max-w-3xl mx-auto outline shadow-md rounded-lg p-6 space-y-6">
-      <Skeleton className="w-30 h-[30px] ml-auto mb-4" />
       <div className="rounded-lg overflow-hidden border">
         <Skeleton className="w-full h-[300px]" />
       </div>

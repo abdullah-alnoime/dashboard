@@ -14,74 +14,72 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ProjectSkeleton } from "./skeleton";
 import { NoProject } from "./projects";
-import Link from "next/link";
 
 export default function Project({ projectId }) {
   const { data: project, isLoading } = useProject(projectId);
   if (isLoading) return <ProjectSkeleton />;
   if (!project) return <NoProject />;
-  const { title, preview, summary, tools, content, code, demo, translations } =
-    project;
-  const description = content?.description ?? "";
-  const desktop = content?.responsive?.desktop ?? "";
-  const mobile = content?.responsive?.mobile ?? "";
-  const ar = translations?.ar;
-  const arTitle = ar?.title ?? "";
-  const arSummary = ar?.summary ?? "";
-  const arDescription = ar?.content?.description ?? "";
+  const {
+    preview,
+    title,
+    summary,
+    tools,
+    demo,
+    code,
+    content: {
+      description,
+      responsive: { mobile, desktop },
+    },
+    translations: {
+      ar: {
+        title: arTitle,
+        summary: arSummary,
+        content: { description: arDescription },
+      },
+    },
+  } = project;
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <Button className="ml-auto mb-4 cursor-pointer" asChild>
-          <Link href={`${projectId}/edit`}>Edit Project</Link>
-        </Button>
-        {preview && (
-          <div className="mb-4 rounded-lg overflow-hidden border">
-            <Image
-              src={preview}
-              alt={`${title} preview`}
-              width={1200}
-              height={630}
-              unoptimized
-              className="w-full h-auto object-cover"
-            />
-          </div>
-        )}
+        <div className="mb-4 rounded-lg overflow-hidden border">
+          <Image
+            src={preview}
+            alt={`${title} preview`}
+            width={1200}
+            height={630}
+            unoptimized
+            className="w-full h-auto object-cover"
+          />
+        </div>
         <CardTitle className="text-3xl">{title}</CardTitle>
         <CardDescription className="text-base mt-2">{summary}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {tools?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {tools.map((tool, index) => (
-              <Badge key={index} variant="secondary">
-                {tool}
-              </Badge>
-            ))}
-          </div>
-        )}
-        {description && (
-          <p className="text-muted-foreground leading-relaxed">{description}</p>
-        )}
-        {(demo || code) && (
-          <div className="flex flex-wrap gap-3">
-            {demo && (
-              <Button asChild>
-                <a href={demo} target="_blank" rel="noopener noreferrer">
-                  Live Demo
-                </a>
-              </Button>
-            )}
-            {code && (
-              <Button variant="outline" asChild>
-                <a href={code} target="_blank" rel="noopener noreferrer">
-                  View Code
-                </a>
-              </Button>
-            )}
-          </div>
-        )}
-        {ar && (arTitle || arSummary || arDescription) && (
+        <div className="flex flex-wrap gap-2">
+          {tools.map((tool, index) => (
+            <Badge key={index} variant="secondary">
+              {tool}
+            </Badge>
+          ))}
+        </div>
+        <p className="text-muted-foreground leading-relaxed">{description}</p>
+        <div className="flex flex-wrap gap-3">
+          {demo && (
+            <Button asChild>
+              <a href={demo} target="_blank" rel="noopener noreferrer">
+                Live Demo
+              </a>
+            </Button>
+          )}
+          {code && (
+            <Button variant="outline" asChild>
+              <a href={code} target="_blank" rel="noopener noreferrer">
+                View Code
+              </a>
+            </Button>
+          )}
+        </div>
+        {(arTitle || arSummary || arDescription) && (
           <>
             <Separator className="my-6" />
             <div>

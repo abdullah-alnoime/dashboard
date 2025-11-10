@@ -10,7 +10,6 @@ import { toast } from "sonner";
 
 export function useMessages() {
   const { permissions } = usePermissions();
-
   return useQuery({
     queryKey: ["messages"],
     queryFn: getMessages,
@@ -19,21 +18,18 @@ export function useMessages() {
   });
 }
 
-export function useMessage(messageId) {
+export function useMessage(id) {
   const { permissions } = usePermissions();
-
   return useQuery({
-    queryKey: ["messages", messageId],
-    queryFn: () => getMessage(messageId),
-    enabled: !!messageId && permissions.canReadMessage,
+    queryKey: ["messages", id],
+    queryFn: () => getMessage(id),
+    enabled: !!id && permissions.canReadMessage,
     onError: (error) => toast.error(error.message),
   });
 }
 
 export function useCreateMessage() {
-  const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: createMessage,
     onSuccess: () => {
@@ -43,19 +39,12 @@ export function useCreateMessage() {
     onError: (error) => {
       toast.error(error.message || "Failed to send message");
     },
-    onMutate: () => {
-      if (!permissions.canCreateMessage) {
-        toast.error("You don't have permission to send messages");
-        throw new Error("Insufficient permissions");
-      }
-    },
   });
 }
 
 export function useDeleteMessage() {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: removeMessage,
     onSuccess: () => {
@@ -67,8 +56,7 @@ export function useDeleteMessage() {
     },
     onMutate: () => {
       if (!permissions.canDeleteMessage) {
-        toast.error("You don't have permission to delete messages");
-        throw new Error("Insufficient permissions");
+        throw new Error("You don't have permission to delete messages");
       }
     },
   });
