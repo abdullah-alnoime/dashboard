@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import Link from "next/link";
@@ -26,7 +26,8 @@ import { DateInput } from "./form/DatePicker";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-const initialUniversity = {
+
+export const initialUniversity = {
   logo: "",
   title: "",
   by: "",
@@ -43,12 +44,26 @@ const initialUniversity = {
     },
   },
 };
+
 export default function UniversityForm({ mode, universityId }) {
   const router = useRouter();
   const [skillInput, setSkillInput] = useState("");
   const [arSkillInput, setArSkillInput] = useState("");
-  const { data: university, isError, error } = useUniversity(universityId);
+  const [initialValues, setInitialValues] = useState(initialUniversity);
+  const {
+    data: university,
+    isLoading,
+    isError,
+    error,
+  } = useUniversity(universityId);
   const { mutate, isPending } = useUpsertUniversity(mode);
+  useEffect(() => {
+    if (mode === "edit" && university) {
+      setInitialValues(university);
+    } else if (mode === "create") {
+      setInitialValues(initialUniversity);
+    }
+  }, [university, mode]);
   const {
     handleSubmit,
     getFieldProps,
@@ -61,10 +76,7 @@ export default function UniversityForm({ mode, universityId }) {
     dirty,
   } = useFormik({
     enableReinitialize: true,
-    initialValues: {
-      ...initialUniversity,
-      ...university,
-    },
+    initialValues,
     validationSchema: schema,
     onSubmit: (values) => {
       if (mode === "edit") {
@@ -117,9 +129,7 @@ export default function UniversityForm({ mode, universityId }) {
     );
     setFieldValue("translations.ar.skills", newSkills);
   };
-  if (mode === "edit" && !university) {
-    return <div>Loading university data...</div>;
-  }
+  if (isLoading) return <div>Loading university data...</div>;
   if (isError) return <div>{error.message}</div>;
   return (
     <form

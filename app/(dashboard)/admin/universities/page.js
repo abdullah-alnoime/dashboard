@@ -3,8 +3,8 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import UniversitiesTable from "./_components/UniversitiesTable";
 import { getUniversities } from "@/requests/universities";
+import { Universities } from "./_components";
 
 export default async function UniversitiesPage() {
   const queryClient = new QueryClient();
@@ -14,7 +14,7 @@ export default async function UniversitiesPage() {
   });
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <UniversitiesTable />
+      <Universities />
     </HydrationBoundary>
   );
 }

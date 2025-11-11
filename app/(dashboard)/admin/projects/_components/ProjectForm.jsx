@@ -2,7 +2,7 @@
 
 import { useFormik } from "formik";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Field,
   FieldError,
@@ -47,11 +47,20 @@ const initialProject = {
     },
   },
 };
+
 export default function ProjectForm({ mode, projectId }) {
   const router = useRouter();
   const [toolInput, setToolInput] = useState("");
+  const [initialValues, setInitialValues] = useState(initialProject);
   const { data: project, isError, error, isLoading } = useProject(projectId);
   const { mutate, isPending } = useUpsertProject(mode);
+  useEffect(() => {
+    if (mode === "edit" && project) {
+      setInitialValues(project);
+    } else if (mode === "create") {
+      setInitialValues(initialProject);
+    }
+  }, [project, mode]);
   const {
     handleSubmit,
     getFieldProps,
@@ -64,7 +73,7 @@ export default function ProjectForm({ mode, projectId }) {
     dirty,
   } = useFormik({
     enableReinitialize: true,
-    initialValues: { ...initialProject, ...project },
+    initialValues,
     validationSchema: schema,
     onSubmit: (values) => {
       if (mode === "edit") {

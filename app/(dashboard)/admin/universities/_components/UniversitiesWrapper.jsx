@@ -1,26 +1,43 @@
+import { AdminRoute } from "@/components/auth/AdminRoute";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function UniversitiesWrapper({ children }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="max-w-7xl mx-auto py-4 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">University Management</h1>
-            <Link href="/dashboard" className="text-blue-600 hover:underline">
-              Back to Dashboard
-            </Link>
+    <AdminRoute>
+      <div className="min-h-screen bg-neutral-50">
+        <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="max-w-7xl mx-auto py-4 flex gap-2 items-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="cursor-pointer"
+                    asChild
+                  >
+                    <Link href="/dashboard">
+                      <ChevronLeft />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Back to Dashboard</p>
+                </TooltipContent>
+              </Tooltip>
+              <h1 className="text-2xl font-bold">University Management</h1>
+            </div>
+            {children}
           </div>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">Universities</h2>
-            <Button className="cursor-pointer" asChild>
-              <Link href="universities/create">Add University</Link>
-            </Button>
-          </div>
-          {children}
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </AdminRoute>
   );
 }

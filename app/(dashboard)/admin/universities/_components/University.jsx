@@ -6,7 +6,7 @@ import { formatDate } from "@/utils/formatDate";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function UniversityDetails({ universityId }) {
+export default function University({ universityId }) {
   const { data: university, isLoading } = useQuery({
     queryKey: ["universities", universityId],
     queryFn: () => getUniversity(universityId),

@@ -1,5 +1,11 @@
-"use client";
-
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -10,35 +16,27 @@ import {
 } from "@/components/ui/table";
 import {
   Tooltip,
-  TooltipTrigger,
   TooltipContent,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Pencil, ScanText, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import Link from "next/link";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useDeleteProject } from "@/hooks/useProjects";
+import { useDeleteUniversity } from "@/hooks/useUniversities";
+import { Pencil, ScanText, Trash2 } from "lucide-react";
+import Link from "next/link";
 
-export default function ProjectsTable({ projects, setDialog }) {
+export default function UniversitiesTable({ universities, setDialog }) {
   const { permissions } = usePermissions();
-  const { isPending } = useDeleteProject();
-  const handleOpenDialog = (project) => {
-    setDialog({ open: true, project });
+  const { isPending } = useDeleteUniversity();
+  const handleOpenDialog = (university) => {
+    setDialog({ open: true, university });
   };
-  if (projects.length === 0) {
+  if (universities.length === 0) {
     return (
       <Card className="w-full max-w-3xl mx-auto">
         <CardHeader className="text-center gap-6">
-          <CardTitle className="text-2xl">No Projects Found</CardTitle>
+          <CardTitle className="text-2xl">No Universities Found</CardTitle>
           <CardDescription>
-            Click on "Add Project" to create a new one.
+            Click on "Add University" to create a new one.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -48,7 +46,7 @@ export default function ProjectsTable({ projects, setDialog }) {
     <Table>
       <TableHeader>
         <TableRow className="bg-slate-100">
-          {["Project Id", "Title", "Summary", "Tools", "Links", "Actions"].map(
+          {["University Id", "Title", "Provider", "Status", "Actions"].map(
             (col) => (
               <TableHead key={col} className="font-bold pointer-events-none">
                 {col}
@@ -58,36 +56,22 @@ export default function ProjectsTable({ projects, setDialog }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {projects.map(({ _id, title, summary, code, demo, tools }) => (
+        {universities.map(({ _id, title, by, status }) => (
           <TableRow key={_id}>
             <TableCell>{_id}</TableCell>
             <TableCell>{title}</TableCell>
-            <TableCell>{summary}</TableCell>
+            <TableCell>{by}</TableCell>
             <TableCell>
-              {tools.map((tool) => (
-                <Badge key={tool} variant="secondary" className="mr-1">
-                  {tool}
-                </Badge>
-              ))}
-            </TableCell>
-            <TableCell>
-              <a
-                href={demo}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm"
+              <Badge
+                variant="secondary"
+                className={`${
+                  status === "graduated"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-800"
+                }`}
               >
-                Live demo
-              </a>
-              ,{" "}
-              <a
-                href={code}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm"
-              >
-                Source code
-              </a>
+                {status === "graduated" ? "Graduated" : "In Progress"}
+              </Badge>
             </TableCell>
             <TableCell className="flex items-center gap-2">
               <Tooltip>
@@ -102,7 +86,7 @@ export default function ProjectsTable({ projects, setDialog }) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>View the project ({title})</p>
+                  <p>View the university ({title})</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -117,7 +101,7 @@ export default function ProjectsTable({ projects, setDialog }) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Edit the project ({title})</p>
+                  <p>Edit the university ({title})</p>
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -127,13 +111,13 @@ export default function ProjectsTable({ projects, setDialog }) {
                     size="icon"
                     className="cursor-pointer text-red-500 hover:text-red-700"
                     onClick={() => handleOpenDialog({ _id, title })}
-                    disabled={!permissions.canDeleteProject || isPending}
+                    disabled={!permissions.canDeleteUniversity || isPending}
                   >
                     <Trash2 />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Delete the project ({title})</p>
+                  <p>Delete the university ({title})</p>
                 </TooltipContent>
               </Tooltip>
             </TableCell>

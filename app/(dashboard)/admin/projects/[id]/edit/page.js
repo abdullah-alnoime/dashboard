@@ -21,13 +21,13 @@ export default async function EditProjectPage({ params }) {
               className="cursor-pointer"
               asChild
             >
-              <Link href=".">
+              <Link href="/admin/projects">
                 <ChevronLeft />
               </Link>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Back to Project Details</p>
+            <p>Back to Projects</p>
           </TooltipContent>
         </Tooltip>
         <h2 className="text-xl font-bold">Edit project</h2>
