@@ -22,10 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DateInput } from "./form/DatePicker";
+import { DateInput } from "@/components/shared/DatePicker";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import UniversityFormSkeleton from "./skeleton/UniversityFormSkeleton";
+import { NoUniversity } from "./universities";
 
 export const initialUniversity = {
   logo: "",
@@ -129,8 +131,8 @@ export default function UniversityForm({ mode, universityId }) {
     );
     setFieldValue("translations.ar.skills", newSkills);
   };
-  if (isLoading) return <div>Loading university data...</div>;
-  if (isError) return <div>{error.message}</div>;
+  if (isLoading) return <UniversityFormSkeleton />;
+  if (isError) return <NoUniversity msg={error.message} />;
   return (
     <form
       onSubmit={handleSubmit}
@@ -342,7 +344,7 @@ export default function UniversityForm({ mode, universityId }) {
               !!(errors.translations?.ar?.by && touched.translations?.ar?.by)
             }
           >
-            <FieldLabel htmlFor="arabicBy">العنوان</FieldLabel>
+            <FieldLabel htmlFor="arabicBy">المعهد/الجامعة</FieldLabel>
             <Input
               type="text"
               id="arabicBy"
@@ -382,7 +384,14 @@ export default function UniversityForm({ mode, universityId }) {
                 id="skills"
                 name="skills"
                 value={arSkillInput}
-                className="flex-1 min-w-[200px]"
+                disabled={
+                  values.status === "in-progress" || values.status === ""
+                }
+                className={`flex-1 min-w-[200px] ${
+                  values.status === "in-progress"
+                    ? "bg-neutral-100 placeholder:font-medium placeholder:text-gray-900"
+                    : null
+                }`}
                 onBlur={handleBlur}
                 onChange={(e) => setArSkillInput(e.target.value)}
                 onKeyDown={(e) => handleArSkillsKeyDown(e)}

@@ -1,18 +1,23 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { getUniversity } from "@/requests/universities";
-import { formatDate } from "@/utils/formatDate";
-import Link from "next/link";
 import Image from "next/image";
+import { formatDate } from "@/utils/formatDate";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { NoUniversity } from "./universities";
+import { UniversitySkeleton } from "./skeleton";
+import { useUniversity } from "@/hooks/useUniversities";
 
 export default function University({ universityId }) {
-  const { data: university, isLoading } = useQuery({
-    queryKey: ["universities", universityId],
-    queryFn: () => getUniversity(universityId),
-  });
-  if (isLoading) return <p>Loading...</p>;
-  if (!university) return <p>University not found.</p>;
+  const { data: university, isLoading } = useUniversity(universityId);
+  if (isLoading) return <UniversitySkeleton />;
+  if (!university) return <NoUniversity />;
   const {
     by,
     grade,
@@ -26,65 +31,145 @@ export default function University({ universityId }) {
       ar: { by: arBy, skills: arSkills, title: arTitle },
     },
   } = university;
+  console.log(arBy, arTitle, arSkills);
   return (
-    <div className="bg-white shadow rounded-lg p-8 max-w-3xl w-full">
-      <Image src={logo} alt={`${by} logo`} width={60} height={60} unoptimized />
-      <h2 className="text-3xl font-bold mb-4">{title}</h2>
-      <p className="text-gray-700 mb-2">
-        <strong>Provider:</strong> {by}
-      </p>
-      <p className="text-gray-700 mb-2">
-        <strong>Status:</strong> {status}
-      </p>
-      {status === "in-progress"
-        ? startedAt && (
-            <p className="text-gray-700 mb-2">
-              <strong>Started:</strong> {formatDate(startedAt)}
-            </p>
-          )
-        : graduatedAt && (
-            <p className="text-gray-700 mb-2">
-              <strong>Graduated:</strong> {formatDate(graduatedAt)}
-            </p>
-          )}
-      {grade && (
-        <p className="text-gray-700 mb-2">
-          <strong>Grade:</strong> {grade}
-        </p>
-      )}
-      {skills && (
-        <p className="text-gray-700 mb-4">
-          <strong>Skills:</strong> {skills.join(", ")}
-        </p>
-      )}
-      {(arBy || arSkills || arTitle) && (
-        <>
-          <h2 className="text-2xl font-bold my-4">Arabic translations</h2>
-          <div dir="rtl">
-            {arTitle && <h3 className="text-3xl font-bold mb-4">{arTitle}</h3>}
-            {arBy && <p className="text-gray-700 mb-4">{arBy}</p>}
-            {arSkills && (
-              <p className="text-gray-700 mb-4">
-                <strong>المهارات:</strong> {arSkills.join(", ")}
+    <Card className="w-full max-w-3xl mx-auto">
+      <CardHeader className="flex gap-4">
+        <div className="w-16 h-16 relative rounded-full overflow-hidden border shadow">
+          <Image
+            src={logo}
+            alt={`${by} logo`}
+            fill
+            unoptimized
+            className="object-contain p-0.5 rounded-full"
+          />
+        </div>
+        <div>
+          <CardTitle className="text-3xl font-bold">{title}</CardTitle>
+          <CardDescription className="text-base text-muted-foreground">
+            {by}
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 text-muted-foreground">
+        <div className="leading-relaxed space-y-2">
+          {status === "graduated" ? (
+            <>
+              <p>
+                This learner has successfully graduated from{" "}
+                <span className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                  {by}
+                </span>
+                {graduatedAt && (
+                  <>
+                    {" "}
+                    on{" "}
+                    <time className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                      {formatDate(graduatedAt)}
+                    </time>
+                    .
+                  </>
+                )}
               </p>
-            )}
-          </div>
-        </>
-      )}
-      <div className="flex gap-3 mt-6">
-        <Link
-          href={`${universityId}/edit`}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Edit
-        </Link>
-        <Link
-          href="."
-          className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-        >
-          Back
-        </Link>
-      </div>
-    </div>
+              {grade && (
+                <p>
+                  They achieved a final grade of{" "}
+                  <span className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                    {grade}
+                  </span>
+                  .
+                </p>
+              )}
+              {skills?.length > 0 && (
+                <p>
+                  During their studies, they developed skills in{" "}
+                  <span className="font-medium text-foreground">
+                    {skills.join(", ")}
+                  </span>
+                  .
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p>
+                This learner is currently studying at{" "}
+                <span className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                  {by}
+                </span>
+                {startedAt && (
+                  <>
+                    {" "}
+                    since{" "}
+                    <time className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                      {formatDate(startedAt)}
+                    </time>
+                    .
+                  </>
+                )}
+              </p>
+              <p>They are still progressing toward their graduation.</p>
+            </>
+          )}
+        </div>
+        {(arBy || arSkills.length > 0 || arTitle) && (
+          <>
+            <Separator className="my-6" />
+            <h3 className="text-xl text-foreground font-semibold mb-4">
+              Arabic Translations
+            </h3>
+            <div>
+              <div dir="rtl" className="space-y-3 leading-relaxed">
+                {arTitle && (
+                  <h4 className="text-2xl font-bold text-foreground mt-4">
+                    {arTitle}
+                  </h4>
+                )}
+                {status === "graduated" ? (
+                  <>
+                    <p>
+                      تخرّج هذا الطالب من{" "}
+                      <span className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                        {arBy || by}
+                      </span>
+                      {graduatedAt && ` في ${formatDate(graduatedAt)}.`}
+                    </p>
+                    {grade && (
+                      <p>
+                        وحصل على معدل{" "}
+                        <span className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                          {grade}
+                        </span>
+                        .
+                      </p>
+                    )}
+                    {arSkills.length > 0 && (
+                      <p>
+                        وخلال دراسته اكتسب مهارات في{" "}
+                        <span className="font-medium text-foreground">
+                          {arSkills.join("، ")}
+                        </span>
+                        .
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      هذا الطالب يدرس حالياً في{" "}
+                      <span className="font-medium text-foreground underline underline-offset-4 decoration-dotted">
+                        {arBy}
+                      </span>
+                      {startedAt && ` منذ ${formatDate(startedAt)}.`}
+                    </p>
+                    <p>وما زال في طريقه نحو التخرّج.</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }

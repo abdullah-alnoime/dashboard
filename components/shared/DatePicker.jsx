@@ -15,7 +15,7 @@ import { Field, FieldError } from "@/components/ui/field";
 export function DateInput({
   name,
   label,
-  disabled,
+  disabled = false,
   values,
   setFieldValue,
   touched,

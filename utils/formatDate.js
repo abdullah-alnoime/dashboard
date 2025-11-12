@@ -4,9 +4,9 @@ export const formatDate = (dateString, extended = false) => {
     month: "long",
     day: "numeric",
     year: "numeric",
-  })} ${
+  })}${
     extended
-      ? `at ${date.toLocaleString("en-US", {
+      ? ` at ${date.toLocaleString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,

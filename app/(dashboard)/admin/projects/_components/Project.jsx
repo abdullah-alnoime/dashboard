@@ -41,7 +41,7 @@ export default function Project({ projectId }) {
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <div className="mb-4 rounded-lg overflow-hidden border">
+        <div className="mb-4 rounded-lg overflow-hidden border border-border">
           <Image
             src={preview}
             alt={`${title} preview`}
@@ -51,18 +51,27 @@ export default function Project({ projectId }) {
             className="w-full h-auto object-cover"
           />
         </div>
-        <CardTitle className="text-3xl">{title}</CardTitle>
-        <CardDescription className="text-base mt-2">{summary}</CardDescription>
+        <CardTitle className="text-3xl font-bold text-foreground">
+          {title}
+        </CardTitle>
+        <CardDescription className="text-base mt-2 text-muted-foreground/90">
+          {summary}
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-6">
+        <p className="text-foreground/80 leading-relaxed">{description}</p>
         <div className="flex flex-wrap gap-2">
           {tools.map((tool, index) => (
-            <Badge key={index} variant="secondary">
+            <Badge
+              key={index}
+              variant="secondary"
+              className="text-foreground/90"
+            >
               {tool}
             </Badge>
           ))}
         </div>
-        <p className="text-muted-foreground leading-relaxed">{description}</p>
         <div className="flex flex-wrap gap-3">
           {demo && (
             <Button asChild>
@@ -83,7 +92,7 @@ export default function Project({ projectId }) {
           <>
             <Separator className="my-6" />
             <div>
-              <h3 className="text-xl font-semibold mb-4">
+              <h3 className="text-xl font-semibold mb-4 text-foreground/90">
                 Arabic Translations
               </h3>
               <div dir="rtl" className="space-y-3">
@@ -92,11 +101,9 @@ export default function Project({ projectId }) {
                     {arTitle}
                   </h4>
                 )}
-                {arSummary && (
-                  <p className="text-muted-foreground">{arSummary}</p>
-                )}
+                {arSummary && <p className="text-foreground/80">{arSummary}</p>}
                 {arDescription && (
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-foreground/80 leading-relaxed">
                     {arDescription}
                   </p>
                 )}
@@ -108,14 +115,16 @@ export default function Project({ projectId }) {
           <>
             <Separator className="my-6" />
             <div>
-              <h3 className="text-xl font-semibold mb-4">Responsive Design</h3>
+              <h3 className="text-xl font-semibold mb-4 text-foreground/90">
+                Responsive Design
+              </h3>
               <div className="flex flex-wrap justify-center items-start gap-4">
                 {desktop && (
                   <div className="flex-1 min-w-[200px] max-w-md">
-                    <p className="text-sm text-muted-foreground mb-2 text-center">
+                    <p className="text-sm text-muted-foreground/90 mb-2 text-center">
                       Desktop
                     </p>
-                    <div className="rounded-lg overflow-hidden border">
+                    <div className="rounded-lg overflow-hidden border border-border">
                       <Image
                         src={desktop}
                         alt={`${title} desktop preview`}
@@ -129,10 +138,10 @@ export default function Project({ projectId }) {
                 )}
                 {mobile && (
                   <div className="flex-1 min-w-[150px] max-w-xs">
-                    <p className="text-sm text-muted-foreground mb-2 text-center">
+                    <p className="text-sm text-muted-foreground/90 mb-2 text-center">
                       Mobile
                     </p>
-                    <div className="rounded-lg overflow-hidden border">
+                    <div className="rounded-lg overflow-hidden border border-border">
                       <Image
                         src={mobile}
                         alt={`${title} mobile preview`}

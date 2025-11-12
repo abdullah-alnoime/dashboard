@@ -3,7 +3,7 @@ import {
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import MessagesTable from "./_components/MessagesTable";
+import { Messages } from "./_components";
 import { getMessages } from "@/requests/messages";
 
 export default async function MessagesPage() {
@@ -13,12 +13,8 @@ export default async function MessagesPage() {
     queryFn: getMessages,
   });
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <HydrationBoundary state={dehydrate(queryClient)}>
-          <MessagesTable />
-        </HydrationBoundary>
-      </main>
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Messages />
+    </HydrationBoundary>
   );
 }

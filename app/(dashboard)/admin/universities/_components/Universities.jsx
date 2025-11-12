@@ -7,11 +7,12 @@ import {
   UniversitiesDialog,
 } from "./universities";
 import { useState } from "react";
+import { UniversitiesSkeleton } from "./skeleton";
 
 export default function Universities() {
   const { data: universities = [], isLoading } = useUniversities();
   const [dialog, setDialog] = useState({ open: false, university: null });
-  if (isLoading) return <div>loading universities..</div>;
+  if (isLoading) return <UniversitiesSkeleton />;
   return (
     <>
       <UniversitiesHeader />

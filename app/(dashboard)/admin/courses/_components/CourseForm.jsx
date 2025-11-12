@@ -1,399 +1,362 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as Yup from "yup";
-import { createCourse, getCourse, updateCourse } from "@/requests/courses";
 import Link from "next/link";
+import { schema } from "./validation/schema";
+import { CourseFormSkeleton } from "./skeleton";
+import { NoCourse } from "./courses";
+import { useCourse, useUpsertCourse } from "@/hooks/useCourses";
+import { DateInput } from "@/components/shared/DatePicker";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
+const initialCourse = {
+  logo: "",
+  title: "",
+  by: "",
+  skills: [],
+  earnedAt: "",
+  grade: "",
+  credential: "",
+  translations: {
+    ar: {
+      title: "",
+      by: "",
+      skills: [],
+    },
+  },
+};
 export default function CourseForm({ mode, courseId }) {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const [skillInput, setSkillInput] = React.useState("");
-  const [arSkillInput, setArSkillInput] = React.useState("");
-
-  const { data: course } = useQuery({
-    queryKey: ["courses", courseId],
-    queryFn: () => getCourse(courseId),
-    enabled: mode === "edit",
-  });
-
-  const mutation = useMutation({
-    mutationFn: (values) => {
-      if (mode === "edit") {
-        return updateCourse(courseId, values);
-      } else {
-        return createCourse(values);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["courses"]);
-      alert(`Course ${mode === "edit" ? "updated" : "created"} successfully!`);
-      router.back();
-    },
-    onError: (err) => {
-      alert(err.response?.data?.msg || "Something went wrong");
-    },
-  });
-
-  const formik = useFormik({
+  const [skillInput, setSkillInput] = useState("");
+  const [arSkillInput, setArSkillInput] = useState("");
+  const [initialValues, setInitialValues] = useState(initialCourse);
+  const { data: course, isLoading, isError, error } = useCourse(courseId);
+  const { mutate, isPending } = useUpsertCourse(mode);
+  useEffect(() => {
+    if (mode === "edit" && course) {
+      setInitialValues(course);
+    } else if (mode === "create") {
+      setInitialValues(initialCourse);
+    }
+  }, [course, mode]);
+  const {
+    handleSubmit,
+    getFieldProps,
+    setFieldValue,
+    handleBlur,
+    values,
+    touched,
+    errors,
+    isValid,
+    dirty,
+  } = useFormik({
     enableReinitialize: true,
-    initialValues: {
-      logo: course?.content.logo || "",
-      title: course?.content.title || "",
-      by: course?.content.by || "",
-      skills: course?.content.skills || [],
-      earnedAt: course?.content.earnedAt || "",
-      grade: course?.content.grade || "",
-      credential: course?.content.credential || "",
-      translations: {
-        ar: {
-          title: course?.content.translations.ar.title || "",
-          by: course?.content.translations.ar.by || "",
-          skills: course?.content.translations.ar.skills || [],
-        },
-      },
-    },
-    validationSchema: Yup.object({
-      logo: Yup.string().url("Invalid URL").required("Logo is required"),
-      title: Yup.string().required("Title is required"),
-      by: Yup.string().required("Provider is required"),
-      skills: Yup.array()
-        .of(Yup.string())
-        .min(1, "At least one skill is required")
-        .required("Skills are required"),
-      earnedAt: Yup.date().required("Earned date is required"),
-      grade: Yup.string().required("Grade is required"),
-      credential: Yup.string()
-        .url("Invalid URL")
-        .required("Credential URL is required"),
-      translations: Yup.object({
-        ar: Yup.object({
-          title: Yup.string().required("Arabic title is required"),
-          by: Yup.string().required("Arabic provider is required"),
-          skills: Yup.array()
-            .of(Yup.string())
-            .min(1, "At least one Arabic skill is required")
-            .required("Arabic skills are required"),
-        }),
-      }),
-    }),
+    initialValues,
+    validationSchema: schema,
     onSubmit: (values) => {
-      const { _id, updatedAt, createdAt, ...data } = values;
-      mutation.mutate(data);
+      if (mode === "edit") {
+        const { _id, updatedAt, createdAt, __v, ...data } = values;
+        mutate(
+          { id: courseId, data },
+          { onSuccess: () => router.push("/admin/courses") }
+        );
+      } else {
+        mutate(values, { onSuccess: () => router.push("/admin/courses") });
+      }
     },
   });
   const handleSkillsKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const skill = skillInput.trim();
-      if (skill && !formik.values.skills.includes(skill)) {
-        formik.setFieldValue("skills", [...formik.values.skills, skill]);
+      if (skill && !values.skills.includes(skill)) {
+        setFieldValue("skills", [...values.skills, skill]);
         setSkillInput("");
       }
     }
   };
-
   const removeSkill = (indexToRemove) => {
-    const newSkills = formik.values.skills.filter(
+    const newSkills = values.skills.filter(
       (_, index) => index !== indexToRemove
     );
-    formik.setFieldValue("skills", newSkills);
+    setFieldValue("skills", newSkills);
   };
-
-  // Arabic skills handlers
   const handleArSkillsKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       const skill = arSkillInput.trim();
-      if (skill && !formik.values.translations.ar.skills.includes(skill)) {
-        formik.setFieldValue("translations.ar.skills", [
-          ...formik.values.translations.ar.skills,
+      if (skill && !values.translations.ar.skills.includes(skill)) {
+        setFieldValue("translations.ar.skills", [
+          ...values.translations.ar.skills,
           skill,
         ]);
         setArSkillInput("");
       }
     }
   };
-
   const removeArSkill = (indexToRemove) => {
-    const newSkills = formik.values.translations.ar.skills.filter(
+    const newSkills = values.translations.ar.skills.filter(
       (_, index) => index !== indexToRemove
     );
-    formik.setFieldValue("translations.ar.skills", newSkills);
+    setFieldValue("translations.ar.skills", newSkills);
   };
-
+  if (isLoading) return <CourseFormSkeleton />;
+  if (isError) return <NoCourse msg={error.message} />;
   return (
     <form
-      onSubmit={formik.handleSubmit}
+      onSubmit={handleSubmit}
       noValidate
       className="p-6 space-y-6 outline shadow-md rounded-lg bg-white"
     >
-      {/* Main Fields Section */}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Logo URL <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="url"
-            name="logo"
-            value={formik.values.logo}
-            onChange={formik.handleChange}
-            placeholder="https://example.com/logo.png"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.logo && formik.touched.logo && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.logo}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="title"
-            value={formik.values.title}
-            onChange={formik.handleChange}
-            placeholder="Course Title"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.title && formik.touched.title && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.title}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Provider <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="by"
-            value={formik.values.by}
-            onChange={formik.handleChange}
-            placeholder="e.g., Coursera, Udemy, edX"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.by && formik.touched.by && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.by}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Skills <span className="text-red-500">*</span>
-          </label>
-          <div className="w-full px-3 py-2 border rounded focus-within:ring-2 focus-within:ring-blue-500 min-h-[42px] flex flex-wrap gap-2 items-center">
-            {formik.values.skills.map((skill, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-              >
-                {skill}
-                <button
-                  type="button"
-                  onClick={() => removeSkill(index)}
-                  className="hover:bg-blue-200 rounded-full w-4 h-4 flex items-center justify-center"
-                  aria-label={`Remove ${skill}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <input
-              type="text"
-              value={skillInput}
-              onChange={(e) => setSkillInput(e.target.value)}
-              onKeyDown={handleSkillsKeyDown}
-              placeholder={
-                formik.values.skills.length === 0
-                  ? "Type a skill and press Enter or Space"
-                  : ""
-              }
-              className="flex-1 min-w-[200px] outline-none"
+      <FieldSet>
+        <FieldGroup>
+          <FieldLegend>
+            {mode === "edit" ? "Update" : "Create a New"} Course
+          </FieldLegend>
+          <Field data-invalid={!!(errors.logo && touched.logo)}>
+            <FieldLabel htmlFor="logo">
+              Logo URL <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="url"
+              id="logo"
+              placeholder="type logo URL here"
+              aria-invalid={!!(errors.logo && touched.logo)}
+              {...getFieldProps("logo")}
             />
-          </div>
-          <p className="text-gray-500 text-xs mt-1">
-            Press Enter or Space to add a skill. Backspace to remove last skill.
-          </p>
-          {formik.errors.skills && formik.touched.skills && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.skills}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Earned At <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
+            {errors.logo && touched.logo && (
+              <FieldError>{errors.logo}</FieldError>
+            )}
+          </Field>
+          <Field data-invalid={!!(errors.title && touched.title)}>
+            <FieldLabel htmlFor="title">
+              Title <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="text"
+              id="title"
+              placeholder="type title here"
+              aria-invalid={!!(errors.title && touched.title)}
+              {...getFieldProps("title")}
+            />
+            {errors.title && touched.title && (
+              <FieldError>{errors.title}</FieldError>
+            )}
+          </Field>
+          <Field data-invalid={!!(errors.by && touched.by)}>
+            <FieldLabel htmlFor="by">
+              Provider <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="text"
+              id="by"
+              placeholder="type provider here"
+              aria-invalid={!!(errors.by && touched.by)}
+              {...getFieldProps("by")}
+            />
+            {errors.by && touched.by && <FieldError>{errors.by}</FieldError>}
+          </Field>
+          <Field data-invalid={!!(errors.skills && touched.skills)}>
+            <FieldLabel htmlFor="skills">
+              Skills <span className="text-red-500"> *</span>
+            </FieldLabel>
+            <div className="flex gap-1.5 flex-wrap">
+              {values.skills?.map((skill, index) => (
+                <Badge key={skill} className="ps-3 pe-1 py-1 gap-1">
+                  <span>{skill}</span>
+                  <Button
+                    type="button"
+                    onClick={() => removeSkill(index)}
+                    disabled={
+                      values.status === "in-progress" || values.status === ""
+                    }
+                    className="w-6 h-6 rounded-full hover:text-neutral-900 hover:bg-neutral-100 cursor-pointer"
+                    aria-label={`Remove ${skill}`}
+                  >
+                    <X className="w-1 h-1" />
+                  </Button>
+                </Badge>
+              ))}
+              <Input
+                type="text"
+                id="skills"
+                name="skills"
+                value={skillInput}
+                className="flex-1 min-w-[200px]"
+                onBlur={handleBlur}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={(e) => handleSkillsKeyDown(e)}
+                aria-invalid={!!(errors.skills && touched.skills)}
+                placeholder="type a tool and press Enter"
+              />
+            </div>
+            {touched.skills && errors.skills && (
+              <FieldError>{errors.skills}</FieldError>
+            )}
+          </Field>
+          <DateInput
             name="earnedAt"
-            value={formik.values.earnedAt.split("T")[0]}
-            onChange={formik.handleChange}
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
+            label="Earned At"
+            setFieldValue={setFieldValue}
+            values={values}
+            touched={touched}
+            errors={errors}
           />
-          {formik.errors.earnedAt && formik.touched.earnedAt && (
-            <p className="text-red-500 text-sm mt-1">
-              {formik.errors.earnedAt}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Grade <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="grade"
-            value={formik.values.grade}
-            onChange={formik.handleChange}
-            placeholder="e.g., 95%, A+, Distinction"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.grade && formik.touched.grade && (
-            <p className="text-red-500 text-sm mt-1">{formik.errors.grade}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Credential URL <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="url"
-            name="credential"
-            value={formik.values.credential}
-            onChange={formik.handleChange}
-            placeholder="https://example.com/credential"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.credential && formik.touched.credential && (
-            <p className="text-red-500 text-sm mt-1">
-              {formik.errors.credential}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Arabic Translations Section */}
-      <fieldset className="border border-gray-300 rounded-lg p-4 space-y-4">
-        <legend className="text-lg font-semibold px-2">
-          Arabic Translations (الترجمة العربية)
-        </legend>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Arabic Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="translations.ar.title"
-            value={formik.values.translations.ar.title}
-            onChange={formik.handleChange}
-            dir="rtl"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.translations?.ar?.title &&
-            formik.touched.translations?.ar?.title && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.translations.ar.title}
-              </p>
-            )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Arabic Provider <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            name="translations.ar.by"
-            value={formik.values.translations.ar.by}
-            onChange={formik.handleChange}
-            dir="rtl"
-            className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500"
-          />
-          {formik.errors.translations?.ar?.by &&
-            formik.touched.translations?.ar?.by && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.translations.ar.by}
-              </p>
-            )}
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">
-            Arabic Skills <span className="text-red-500">*</span>
-          </label>
-          <div className="w-full px-3 py-2 border rounded focus-within:ring-2 focus-within:ring-blue-500 min-h-[42px] flex flex-wrap gap-2 items-center">
-            {formik.values.translations.ar.skills.map((skill, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                dir="rtl"
-              >
-                {skill}
-                <button
-                  type="button"
-                  onClick={() => removeArSkill(index)}
-                  className="hover:bg-blue-200 rounded-full w-4 h-4 flex items-center justify-center"
-                  aria-label={`Remove ${skill}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <input
+          <Field data-invalid={!!(errors.grade && touched.grade)}>
+            <FieldLabel htmlFor="grade">
+              Grade
+              <span className="text-red-500"> *</span>
+            </FieldLabel>
+            <Input
               type="text"
-              value={arSkillInput}
-              onChange={(e) => setArSkillInput(e.target.value)}
-              onKeyDown={handleArSkillsKeyDown}
-              dir="rtl"
-              placeholder={
-                formik.values.translations.ar.skills.length === 0
-                  ? "اكتب مهارة واضغط Enter أو Space"
-                  : ""
-              }
-              className="flex-1 min-w-[200px] outline-none"
+              id="grade"
+              placeholder="type grade here"
+              aria-invalid={!!(errors.grade && touched.grade)}
+              {...getFieldProps("grade")}
             />
-          </div>
-          <p className="text-gray-500 text-xs mt-1" dir="rtl">
-            اضغط Enter أو Space لإضافة مهارة. Backspace لإزالة آخر مهارة.
-          </p>
-          {formik.errors.translations?.ar?.skills &&
-            formik.touched.translations?.ar?.skills && (
-              <p className="text-red-500 text-sm mt-1">
-                {formik.errors.translations.ar.skills}
-              </p>
+            {errors.grade && touched.grade && (
+              <FieldError>{errors.grade}</FieldError>
             )}
-        </div>
-      </fieldset>
-
-      {/* Form Actions */}
-      <div className="pt-6 flex gap-3">
-        <button
+          </Field>
+          <Field data-invalid={!!(errors.credential && touched.credential)}>
+            <FieldLabel htmlFor="credential">
+              Credential URL <span className="text-red-500">*</span>
+            </FieldLabel>
+            <Input
+              type="url"
+              id="credential"
+              placeholder="type credential URL here"
+              aria-invalid={!!(errors.credential && touched.credential)}
+              {...getFieldProps("credential")}
+            />
+            {errors.credential && touched.credential && (
+              <FieldError>{errors.credential}</FieldError>
+            )}
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+      <FieldSet>
+        <FieldGroup>
+          <FieldLegend className="mt-4" dir="rtl">
+            الترجمة العربية
+          </FieldLegend>
+          <Field
+            dir="rtl"
+            data-invalid={
+              !!(
+                errors.translations?.ar?.title &&
+                touched.translations?.ar?.title
+              )
+            }
+          >
+            <FieldLabel htmlFor="arabicTitle">العنوان</FieldLabel>
+            <Input
+              type="text"
+              id="arabicTitle"
+              placeholder="ادخل العنوان هنا"
+              {...getFieldProps("translations.ar.title")}
+            />
+            {errors.translations?.ar?.title &&
+              touched.translations?.ar?.title && (
+                <FieldError>{errors.translations.ar.title}</FieldError>
+              )}
+          </Field>
+          <Field
+            dir="rtl"
+            data-invalid={
+              !!(errors.translations?.ar?.by && touched.translations?.ar?.by)
+            }
+          >
+            <FieldLabel htmlFor="arabicBy">المعهد/المنصة</FieldLabel>
+            <Input
+              type="text"
+              id="arabicBy"
+              placeholder="ادخل اسم المعهد/المنصة هنا"
+              {...getFieldProps("translations.ar.by")}
+            />
+            {errors.translations?.ar?.by && touched.translations?.ar?.by && (
+              <FieldError>{errors.translations.ar.by}</FieldError>
+            )}
+          </Field>
+          <Field
+            dir="rtl"
+            data-invalid={
+              !!(
+                errors.translations?.ar?.skills &&
+                touched.translations?.ar?.skills
+              )
+            }
+          >
+            <FieldLabel htmlFor="skills">المهارات</FieldLabel>
+            <div className="flex gap-1.5 flex-wrap">
+              {values.translations?.ar?.skills?.map((skill, index) => (
+                <Badge key={skill} className="pe-3 ps-1 py-1 gap-1">
+                  <span>{skill}</span>
+                  <Button
+                    type="button"
+                    onClick={() => removeArSkill(index)}
+                    className="w-6 h-6 rounded-full hover:text-neutral-900 hover:bg-neutral-100 cursor-pointer"
+                    aria-label={`Remove ${skill}`}
+                  >
+                    <X className="w-1 h-1" />
+                  </Button>
+                </Badge>
+              ))}
+              <Input
+                type="text"
+                id="skills"
+                name="skills"
+                value={arSkillInput}
+                className="flex-1 min-w-[200px]"
+                onBlur={handleBlur}
+                onChange={(e) => setArSkillInput(e.target.value)}
+                onKeyDown={(e) => handleArSkillsKeyDown(e)}
+                aria-invalid={
+                  !!(
+                    errors.translations?.ar?.skills &&
+                    touched.translations?.ar?.skills
+                  )
+                }
+                placeholder="ادخل المهارة واضغط Enter"
+              />
+            </div>
+            {touched.translations?.ar?.skills &&
+              errors.translations?.ar?.skills && (
+                <FieldError>{errors.translations?.ar?.skills}</FieldError>
+              )}
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+      <div className="mt-6 flex justify-center gap-3">
+        <Button
           type="submit"
-          disabled={mutation.isPending}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+          disabled={isPending || !isValid || (mode === "edit" && !dirty)}
+          className="w-full max-w-sm cursor-pointer"
         >
-          {mutation.isPending
-            ? `${mode === "edit" ? "Updating..." : "Creating..."}`
+          {isPending
+            ? mode === "edit"
+              ? "Updating..."
+              : "Creating..."
             : mode === "edit"
             ? "Update Course"
             : "Create Course"}
-        </button>
-        <Link
-          href="."
-          className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-        >
-          Cancel
-        </Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link href="/admin/courses">Cancel</Link>
+        </Button>
       </div>
     </form>
   );

@@ -12,7 +12,7 @@ export const getMessages = async () => {
 export const getMessage = async (id) => {
   try {
     const { data } = await apiClient.get(`/message/${id}`);
-    return data;
+    return data.content;
   } catch (error) {
     throw new Error(error.response.data.msg || "Failed to fetch message");
   }

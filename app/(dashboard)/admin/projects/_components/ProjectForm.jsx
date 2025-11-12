@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   Field,
+  FieldContent,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
@@ -155,9 +157,14 @@ export default function ProjectForm({ mode, projectId }) {
               aria-invalid={!!(errors.summary && touched.summary)}
               {...getFieldProps("summary")}
             />
-            {errors.summary && touched.summary && (
-              <FieldError>{errors.summary}</FieldError>
-            )}
+            <FieldContent className="flex-row justify-between">
+              {errors.summary && touched.summary && (
+                <FieldError>{errors.summary}</FieldError>
+              )}
+              <FieldDescription className="ml-auto">
+                {values.summary.length} / 500 characters
+              </FieldDescription>
+            </FieldContent>
           </Field>
           <Field data-invalid={!!(errors.tools && touched.tools)}>
             <FieldLabel htmlFor="tools">
@@ -241,9 +248,14 @@ export default function ProjectForm({ mode, projectId }) {
               }
               {...getFieldProps("content.description")}
             />
-            {touched.content?.description && errors.content?.description && (
-              <FieldError>{errors.content.description}</FieldError>
-            )}
+            <FieldContent className="flex-row justify-between">
+              {touched.content?.description && errors.content?.description && (
+                <FieldError>{errors.content.description}</FieldError>
+              )}
+              <FieldDescription className="ml-auto">
+                {values.content?.description.length} / 1000 characters
+              </FieldDescription>
+            </FieldContent>
           </Field>
           <div className="grid grid-cols-2 gap-2">
             <Field
@@ -332,10 +344,15 @@ export default function ProjectForm({ mode, projectId }) {
               className="min-h-24 resize-none"
               {...getFieldProps("translations.ar.summary")}
             />
-            {errors.translations?.ar?.summary &&
-              touched.translations?.ar?.summary && (
-                <FieldError>{errors.translations.ar.summary}</FieldError>
-              )}
+            <FieldContent className="flex-row justify-between">
+              {errors.translations?.ar?.summary &&
+                touched.translations?.ar?.summary && (
+                  <FieldError>{errors.translations?.ar?.summary}</FieldError>
+                )}
+              <FieldDescription className="mr-auto">
+                {values.translations?.ar?.summary.length} / 500 حرف
+              </FieldDescription>
+            </FieldContent>
           </Field>
           <Field
             dir="rtl"
@@ -353,12 +370,17 @@ export default function ProjectForm({ mode, projectId }) {
               className="min-h-30 resize-none"
               {...getFieldProps("translations.ar.content.description")}
             />
-            {errors.translations?.ar?.content?.description &&
-              touched.translations?.ar?.content?.description && (
-                <FieldError>
-                  {errors.translations.ar.content.description}
-                </FieldError>
-              )}
+            <FieldContent className="flex-row justify-between">
+              {errors.translations?.ar?.content?.description &&
+                touched.translations?.ar?.content?.description && (
+                  <FieldError>
+                    {errors.translations?.ar?.content?.description}
+                  </FieldError>
+                )}
+              <FieldDescription className="mr-auto">
+                {values.translations?.ar?.content?.description.length} / 500 حرف
+              </FieldDescription>
+            </FieldContent>
           </Field>
         </FieldGroup>
       </FieldSet>

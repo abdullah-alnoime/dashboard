@@ -26,47 +26,36 @@ export function useCourse(id) {
   });
 }
 
-export function useCreateCourse() {
+export function useUpsertCourse(mode = "edit") {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
+  const isEdit = mode === "edit";
   return useMutation({
-    mutationFn: createCourse,
-    onSuccess: () => {
-      queryClient.invalidateQueries(["courses"]);
-      toast.success("Course created successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to create course");
-    },
+    mutationFn: isEdit
+      ? ({ id, data }) => updateCourse(id, data)
+      : (data) => createCourse(data),
     onMutate: () => {
-      if (!permissions.canCreateCourse) {
+      if (!isEdit && !permissions.canCreateCourse) {
         throw new Error("You don't have permission to create courses");
       }
-    },
-  });
-}
-
-export function useUpdateCourse() {
-  const { permissions } = usePermissions();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }) => updateCourse(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["courses"]);
-      toast.success("Course updated successfully");
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to update course");
-    },
-    onMutate: () => {
-      if (!permissions.canUpdateCourse) {
+      if (isEdit && !permissions.canUpdateCourse) {
         throw new Error("You don't have permission to edit courses");
       }
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["courses"]);
+      toast.success(
+        isEdit ? "Course updated successfully" : "Course created successfully"
+      );
+    },
+    onError: (error) => {
+      toast.error(
+        error.message ||
+          (isEdit ? "Failed to update course" : "Failed to create course")
+      );
+    },
   });
 }
-
 export function useDeleteCourse() {
   const { permissions } = usePermissions();
   const queryClient = useQueryClient();
