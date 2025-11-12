@@ -9,21 +9,18 @@ import {
 import { toast } from "sonner";
 
 export function useMessages() {
-  const { permissions } = usePermissions();
   return useQuery({
     queryKey: ["messages"],
     queryFn: getMessages,
-    enabled: permissions.canReadMessage,
     onError: (error) => toast.error(error.message),
   });
 }
 
 export function useMessage(id) {
-  const { permissions } = usePermissions();
   return useQuery({
     queryKey: ["messages", id],
     queryFn: () => getMessage(id),
-    enabled: !!id && permissions.canReadMessage,
+    enabled: !!id,
     onError: (error) => toast.error(error.message),
   });
 }

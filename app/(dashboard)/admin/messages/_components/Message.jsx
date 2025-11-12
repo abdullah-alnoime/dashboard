@@ -14,9 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { MessageSkeleton } from "./skeleton";
 import NoMessage from "./messages/NoMessage";
+import { usePermissions } from "@/hooks/usePermissions";
+import NoPermissions from "./messages/NoPermissions";
 
 export default function Message({ messageId }) {
+  const { permissions } = usePermissions();
   const { data: message, isLoading } = useMessage(messageId);
+  if (!permissions.canReadMessage) return <NoPermissions />;
   if (isLoading) return <MessageSkeleton />;
   if (!message) return <NoMessage />;
   const { name, email, message: msg, createdAt } = message;

@@ -15,8 +15,8 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 export default async function MessagePage({ params }) {
-  const { id } = await params;
   const queryClient = new QueryClient();
+  const { id } = await params;
   await queryClient.prefetchQuery({
     queryKey: ["messages", id],
     queryFn: () => getMessage(id),

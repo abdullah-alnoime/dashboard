@@ -1,4 +1,3 @@
-// hooks/usePermissions.ts
 import { authClient } from "@/lib/auth-client";
 import { useMemo } from "react";
 
@@ -8,20 +7,15 @@ export function usePermissions() {
   const permissions = useMemo(() => {
     if (!session?.user) {
       return {
-        canViewDashboard: false,
-        canEditProfile: false,
-        canChangePassword: false,
+        isAuthenticated: false,
         isAdmin: false,
         canCreateProject: false,
-        canReadProject: false,
         canUpdateProject: false,
         canDeleteProject: false,
         canCreateCourse: false,
-        canReadCourse: false,
         canUpdateCourse: false,
         canDeleteCourse: false,
         canCreateUniversity: false,
-        canReadUniversity: false,
         canUpdateUniversity: false,
         canDeleteUniversity: false,
         canCreateMessage: false,
@@ -31,13 +25,9 @@ export function usePermissions() {
         canCreateUser: false,
         canListUsers: false,
         canBanUser: false,
-        canImpersonateUser: false,
         canDeleteUser: false,
         canSetUserPassword: false,
         canSetUserRole: false,
-        canListSessions: false,
-        canRevokeSessions: false,
-        canDeleteSessions: false,
       };
     }
     const role = session.user.role || "user";
