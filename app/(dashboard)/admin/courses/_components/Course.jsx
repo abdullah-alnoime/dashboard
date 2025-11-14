@@ -34,7 +34,7 @@ export default function Course({ courseId }) {
   } = course;
   return (
     <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader className="flex gap-4">
+      <CardHeader className="flex items-center gap-4">
         <div className="w-16 h-16 relative rounded-full overflow-hidden border shadow">
           <Image
             src={logo}

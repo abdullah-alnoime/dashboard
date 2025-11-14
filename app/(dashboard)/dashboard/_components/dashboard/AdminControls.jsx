@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Item,
@@ -16,8 +18,10 @@ import {
   Mails,
   Users,
 } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function AdminControls() {
+  const { permissions } = usePermissions();
   const links = [
     {
       id: 1,
@@ -55,7 +59,7 @@ export default function AdminControls() {
       description: "View contact messages",
     },
   ];
-
+  if (!permissions.isAdmin) return null;
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6">
       <h3 className="text-lg font-semibold mb-4">Admin Controls</h3>

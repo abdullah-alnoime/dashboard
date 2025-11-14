@@ -1,25 +1,5 @@
-import Link from "next/link";
+import { ResetPasswordWrapper } from "./_components";
 
 export default function ResetPasswordLayout({ children }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-lg space-y-4 p-8 bg-white rounded-lg shadow">
-        <div className="flex justify-between items-center">
-          <Link href="/signin" className="text-blue-500 hover:underline block">
-            Sign in
-          </Link>
-          <Link href="/" className="text-blue-500 hover:underline block">
-            Back to home
-          </Link>
-        </div>
-        <div>
-          <h2 className="text-3xl font-bold">Reset Password</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Enter your new password below.
-          </p>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
+  return <ResetPasswordWrapper>{children}</ResetPasswordWrapper>;
 }

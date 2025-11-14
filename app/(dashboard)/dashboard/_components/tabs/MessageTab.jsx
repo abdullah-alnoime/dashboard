@@ -7,20 +7,19 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default function MessageTab({ data = [], loading }) {
+export default function MessageTab({ data, loading }) {
   if (loading) return <p>Loading messages...</p>;
-  if (!data?.length) return <p className="text-gray-500">No messages found.</p>;
+  if (!data.length > 0)
+    return <p className="text-gray-500">No messages found.</p>;
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Messages</h3>
-        <Link
-          href="/admin/courses"
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Manage Messages
-        </Link>
+        <Button variant="ghost" className="cursor-pointer" asChild>
+          <Link href="/admin/messages">Manage Messages</Link>
+        </Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {data.map(({ _id, name, email, message, createdAt }) => (

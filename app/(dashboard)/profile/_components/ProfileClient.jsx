@@ -8,7 +8,7 @@ import { useChangePassword } from "@/hooks/useUsers";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import {
@@ -17,10 +17,15 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ProfileClient() {
   const { session } = usePermissions();
-  const { mutateAsync, isPending } = useChangePassword();
+  const { mutate, isPending } = useChangePassword();
   const { handleSubmit, getFieldProps, touched, errors, isValid } = useFormik({
     initialValues: {
       currentPassword: "",
@@ -28,12 +33,9 @@ export default function ProfileClient() {
       confirmPassword: "",
     },
     validationSchema: schema,
-    onSubmit: async (values, { resetForm }) => {
+    onSubmit: (values, { resetForm }) => {
       const { confirmPassword, ...data } = values;
-      try {
-        await mutateAsync(data);
-        resetForm();
-      } catch (error) {}
+      mutate(data, { onSuccess: () => resetForm() });
     },
   });
   const [showPassword, setShowPassword] = useState({
@@ -49,10 +51,29 @@ export default function ProfileClient() {
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow p-6 mb-6">
             <div className="flex flex-row items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Account Information</h2>
-              <Link href="/dashboard" className="text-blue-600 hover:underline">
-                Back to dashboard
-              </Link>
+              <div className="flex gap-2 items-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="cursor-pointer"
+                      asChild
+                    >
+                      <Link href="/">
+                        <ChevronLeft />
+                      </Link>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Back to Homepage</p>
+                  </TooltipContent>
+                </Tooltip>
+                <h2 className="text-lg font-semibold">Account Information</h2>
+              </div>
+              <Button variant="ghost" className="cursor-pointer" asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
             </div>
             <div className="grid md:grid-cols-2 gap-4">
               <Item variant="outline">

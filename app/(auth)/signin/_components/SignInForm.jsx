@@ -37,12 +37,15 @@ export default function SignInForm() {
       <Field data-invalid={!!(touched.password && errors.password)}>
         <div className="flex justify-between items-center">
           <FieldLabel htmlFor="password">Password</FieldLabel>
-          <Link
-            href="/forgot-password"
-            className="text-sm text-blue-600 hover:underline"
+          <Button
+            variant="link"
+            className="px-0 text-sm text-blue-500 cursor-pointer"
+            asChild
           >
-            Forgot password?
-          </Link>
+            <Link href="/forgot-password" className="hover:underline">
+              Forgot password?
+            </Link>
+          </Button>
         </div>
         <div className="relative">
           <Input

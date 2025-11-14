@@ -11,20 +11,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default function ProjectTab({ data = [], loading, isAdmin }) {
+export default function ProjectTab({ data, loading, isAdmin }) {
   if (loading) return <p>Loading projects...</p>;
-  if (!data?.length) return <p className="text-gray-500">No projects found.</p>;
+  if (!data.length > 0)
+    return <p className="text-gray-500">No projects found.</p>;
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">All Projects</h3>
         {isAdmin && (
-          <Link
-            href="/admin/projects"
-            className="text-sm text-blue-600 hover:underline"
-          >
-            Manage Projects
-          </Link>
+          <Button variant="ghost" className="cursor-pointer" asChild>
+            <Link href="/admin/projects">Manage Projects</Link>
+          </Button>
         )}
       </div>
       <div className="grid md:grid-cols-3 gap-4">
@@ -57,12 +55,12 @@ export default function ProjectTab({ data = [], loading, isAdmin }) {
               ))}
             </CardContent>
             <CardFooter className="flex gap-3">
-              <Button>
+              <Button asChild>
                 <a href={demo} target="_blank" rel="noopener noreferrer">
                   Live Demo
                 </a>
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" asChild>
                 <a href={code} target="_blank" rel="noopener noreferrer">
                   Source Code
                 </a>

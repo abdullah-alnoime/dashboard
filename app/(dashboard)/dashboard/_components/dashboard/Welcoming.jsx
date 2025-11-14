@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Item,
   ItemContent,
@@ -6,9 +8,20 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCourses } from "@/hooks/useCourses";
+import { useMessages } from "@/hooks/useMessages";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useProjects } from "@/hooks/useProjects";
+import { useUniversities } from "@/hooks/useUniversities";
 import { BadgeCheck, Mail, UserCog } from "lucide-react";
 
-export default function Welcoming({ session, isAdmin, data, loading }) {
+export default function Welcoming() {
+  const { permissions, session } = usePermissions();
+  const { data: projects, isLoading: projectsLoading } = useProjects();
+  const { data: universities, isLoading: universitiesLoading } =
+    useUniversities();
+  const { data: courses, isLoading: coursesLoading } = useCourses();
+  const { data: messages, isLoading: messagesLoading } = useMessages();
   const {
     user: { name, email, role, emailVerified },
   } = session;
@@ -48,17 +61,17 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
           </ItemContent>
         </Item>
       </div>
-      {isAdmin && (
+      {permissions.isAdmin && (
         <div>
           <h2 className="text-xl font-semibold my-4">Statistics</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Item variant="outline">
               <ItemContent className="items-center">
                 <ItemTitle className="text-6xl text-center font-bold">
-                  {loading.projectsLoading ? (
+                  {projectsLoading ? (
                     <Skeleton className="w-[40px] h-[60px]" />
                   ) : (
-                    data.projects.length
+                    projects?.length
                   )}
                 </ItemTitle>
                 <ItemDescription className="text-center">
@@ -69,10 +82,10 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
             <Item variant="outline">
               <ItemContent className="items-center">
                 <ItemTitle className="text-6xl text-center font-bold">
-                  {loading.universitiesLoading ? (
+                  {universitiesLoading ? (
                     <Skeleton className="w-[40px] h-[60px]" />
                   ) : (
-                    data.universities.length
+                    universities?.length
                   )}
                 </ItemTitle>
                 <ItemDescription className="text-center">
@@ -83,10 +96,10 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
             <Item variant="outline">
               <ItemContent className="items-center">
                 <ItemTitle className="text-6xl text-center font-bold">
-                  {loading.coursesLoading ? (
+                  {coursesLoading ? (
                     <Skeleton className="w-[40px] h-[60px]" />
                   ) : (
-                    data.courses.length
+                    courses?.length
                   )}
                 </ItemTitle>
                 <ItemDescription className="text-center">
@@ -97,10 +110,10 @@ export default function Welcoming({ session, isAdmin, data, loading }) {
             <Item variant="outline">
               <ItemContent className="items-center">
                 <ItemTitle className="text-6xl text-center font-bold">
-                  {loading.messagesLoading ? (
+                  {messagesLoading ? (
                     <Skeleton className="w-[40px] h-[60px]" />
                   ) : (
-                    data.messages.length
+                    messages?.length
                   )}
                 </ItemTitle>
                 <ItemDescription className="text-center">

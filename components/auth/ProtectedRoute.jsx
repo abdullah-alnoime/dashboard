@@ -11,7 +11,7 @@ export function ProtectedRoute({ children }) {
   const router = useRouter();
   useEffect(() => {
     if (!isPending && !session) {
-      toast.warning("Your session is expired, Sign in again");
+      toast.warning("Please sign in or register if you’re new.");
       router.push("/signin");
     }
   }, [session, isPending, router]);
