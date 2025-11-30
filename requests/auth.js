@@ -3,7 +3,7 @@ import { authClient } from "@/lib/auth-client";
 export const forgotPassword = async (email) => {
   const { data, error } = await authClient.requestPasswordReset({
     email,
-    redirectTo: `${process.env.NEXT_PUBLIC_LOCAL_CLIENT}/reset-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_CLIENT}/reset-password`,
   });
   if (error)
     throw new Error(error.message || "Failed to send password reset email");
@@ -22,7 +22,7 @@ export const resetPassword = async ({ password, token }) => {
 export const signin = async (payload) => {
   const { data, error } = await authClient.signIn.email({
     ...payload,
-    callbackURL: `${process.env.NEXT_PUBLIC_LOCAL_CLIENT}/dashboard`,
+    callbackURL: `${process.env.NEXT_PUBLIC_CLIENT}/dashboard`,
   });
   if (error) {
     let errorMessage = "Failed to sign in";
@@ -45,7 +45,7 @@ export const signin = async (payload) => {
 export const signup = async (payload) => {
   const { data, error } = await authClient.signUp.email({
     ...payload,
-    callbackURL: `${process.env.NEXT_PUBLIC_LOCAL_CLIENT}/signin`,
+    callbackURL: `${process.env.NEXT_PUBLIC_CLIENT}/signin`,
   });
   if (error) {
     let errorMessage = "Failed to create account";
