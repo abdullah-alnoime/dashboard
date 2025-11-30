@@ -38,8 +38,11 @@ export default function UsersTable({ users, setDialog }) {
   const banUserMutation = useBanUser();
   const unbanUserMutation = useUnbanUser();
   const removeUserMutation = useRemoveUser();
-  const canModifyUser = (targetUser) => {
-    return permissions.canManageUsers && user?.id !== targetUser.id;
+  const canBanUser = (targetUser) => {
+    return permissions.canBanUser && user?.id !== targetUser.id;
+  };
+  const canDeleteUser = (targetUser) => {
+    return permissions.canDeleteUser && user?.id !== targetUser.id;
   };
   const handleOpenDialog = (type, targetUser) => {
     setDialog({
@@ -140,7 +143,7 @@ export default function UsersTable({ users, setDialog }) {
                       variant="outline"
                       className="cursor-pointer text-green-600 hover:text-green-700"
                       disabled={
-                        !canModifyUser(user) || unbanUserMutation.isPending
+                        !canBanUser(user) || unbanUserMutation.isPending
                       }
                       onClick={() => unbanUserMutation.mutate(user.id)}
                     >
@@ -157,9 +160,7 @@ export default function UsersTable({ users, setDialog }) {
                     <Button
                       variant="outline"
                       className="cursor-pointer text-red-500 hover:text-red-600"
-                      disabled={
-                        !canModifyUser(user) || banUserMutation.isPending
-                      }
+                      disabled={!canBanUser(user) || banUserMutation.isPending}
                       onClick={() => handleOpenDialog("ban", user)}
                     >
                       <LockKeyhole />
@@ -176,7 +177,7 @@ export default function UsersTable({ users, setDialog }) {
                     variant="outline"
                     className="cursor-pointer"
                     disabled={
-                      !canModifyUser(user) || removeUserMutation.isPending
+                      !canDeleteUser(user) || removeUserMutation.isPending
                     }
                     onClick={() => handleOpenDialog("remove", user)}
                   >
